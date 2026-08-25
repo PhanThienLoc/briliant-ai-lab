@@ -1,0 +1,58 @@
+{
+  "id": "vector-dot-product",
+  "title": "Vector và dot product",
+  "prerequisites": ["functions-as-transformations"],
+  "outcomes": [
+    "Tính dot product của hai vector nhỏ",
+    "Giải thích dot product như tổng đóng góp của các feature",
+    "Dùng dot product để tạo prediction tuyến tính"
+  ],
+  "misconceptions": [
+    "Dot product là phép nhân từng phần tử nhưng quên bước cộng",
+    "Độ dài vector là số phần tử thay vì norm",
+    "Trọng số lớn luôn có nghĩa feature quan trọng hơn mà không xét scale"
+  ],
+  "activities": [
+    {
+      "id": "pretest-contribution",
+      "type": "predict",
+      "prompt": "Feature nào đóng góp nhiều nhất vào prediction khi biết feature vector và weight vector?"
+    },
+    {
+      "id": "weight-slider",
+      "type": "manipulate",
+      "prompt": "Kéo từng trọng số và quan sát prediction thay đổi."
+    },
+    {
+      "id": "calculate-dot-product",
+      "type": "response",
+      "prompt": "Tính [2, -1, 3] · [0.5, 2, 1]."
+    },
+    {
+      "id": "python-prediction",
+      "type": "python",
+      "prompt": "Viết hàm dot_product không dùng numpy.dot."
+    },
+    {
+      "id": "scaled-feature-transfer",
+      "type": "transfer",
+      "prompt": "Một feature đổi đơn vị từ mét sang centimet. Điều gì phải thay đổi để prediction giữ nguyên?"
+    }
+  ],
+  "mastery": {
+    "requiresIndependent": true,
+    "requiresDelayed": true,
+    "requiresTransfer": true
+  },
+  "sources": [
+    {
+      "title": "Deep Learning with Python, Third Edition",
+      "locator": "Chapter 2 - tensor operations and dot product"
+    },
+    {
+      "title": "Mathematics for Machine Learning",
+      "locator": "Linear Algebra chapter",
+      "url": "https://mml-book.github.io/"
+    }
+  ]
+}
