@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "BriliantAI Lab",
-  description: "Phòng gym tư duy tương tác dành cho AI và Data.",
+  description: "Bàn thí nghiệm tư duy tương tác dành cho AI và Data.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

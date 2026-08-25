@@ -32,5 +32,7 @@ test("renders the Vietnamese learning dashboard", async () => {
   assert.match(html, /<title>BriliantAI Lab<\/title>/i);
   assert.match(html, /Vector và dot product/i);
   assert.match(html, /Việc đáng làm hôm nay/i);
+  assert.match(html, /Bằng chứng còn thiếu/i);
+  assert.match(html, /Feature contributions/i);
   assert.doesNotMatch(html, /Starter Project/i);
 });

@@ -42,7 +42,7 @@ npm test
 
 Release 0 is a focused eight-week MVP. It deliberately excludes payments, social features, a public CMS, GPU training infrastructure, arbitrary server-side notebooks, and autonomous lesson publication.
 
-See [Product requirements](docs/PRD.md), [Architecture](docs/ARCHITECTURE.md), [Curriculum](docs/CURRICULUM.md), and [Roadmap](docs/ROADMAP.md).
+See [Product requirements](docs/PRD.md), [Architecture](docs/ARCHITECTURE.md), [Curriculum](docs/CURRICULUM.md), [Design system](docs/DESIGN-SYSTEM.md), and [Roadmap](docs/ROADMAP.md).
 
 ## Runtime
 
