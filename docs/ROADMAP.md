@@ -10,6 +10,7 @@ Kế hoạch triển khai bám theo nguyên tắc: chứng minh vòng lặp họ
 - Tuần 3 — hoàn thành bản nội dung đầu: đủ 14 lesson, mỗi lesson có 5 hoạt động, mental model, transfer test và nguồn. Nội dung vẫn cần authoring QA trước pilot.
 - Tuần 5 — hoàn thành MVP: mastery engine dùng evidence thật, migration tiến độ cũ, hint/retry penalty và 14 delayed-transfer review sau ≥72 giờ.
 - Tuần 6 — hoàn thành MVP: review scheduler đưa bài chờ/đến hạn lên Learning Hub và chỉ mở Mastered sau delayed recall đúng.
+- Diagnostic — hoàn thành MVP: 10 câu trên 5 trục tạo baseline, chỉ ra knowledge gap sớm nhất và đề xuất lesson bắt đầu; kết quả không được dùng để cấp mastery.
 - Milestone kế tiếp: authoring QA cho 14 lesson, pilot nhỏ và đo tỷ lệ lỗi/timeout của Python runtime.
 
 ## Release 0 — MVP tám tuần

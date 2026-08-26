@@ -43,4 +43,7 @@ test("the interface follows the structured academic template", async () => {
   assert.match(dashboard, /DELAYED TRANSFER/);
   assert.match(dashboard, /useMasterySnapshot/);
   assert.match(dashboard, /lessonEvidenceScore/);
+  assert.match(dashboard, /FOUNDATION DIAGNOSTIC/);
+  assert.match(dashboard, /EARLIEST KNOWLEDGE GAP/);
+  assert.match(dashboard, /briliantai\.diagnostic\.v1/);
 });

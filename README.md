@@ -9,6 +9,8 @@ Repository này khởi tạo Release 0 của kế hoạch sản phẩm. Phiên b
 - Bản đồ 14 lesson cho khóa đầu tiên *Từ dữ liệu thô đến mô hình biết học*.
 - Lesson schema và một lesson nguồn mẫu.
 - Mastery state machine có kiểm thử.
+- Learner Diagnostic 10 câu trên 5 trục, lưu baseline và đề xuất lesson bắt đầu từ lỗ hổng sớm nhất.
+- Python Code Lab chạy code thật với 42 hidden tests, timeout và sandbox dùng một lần.
 - PRD, kiến trúc, curriculum map và CI nền tảng.
 
 ## Product rule

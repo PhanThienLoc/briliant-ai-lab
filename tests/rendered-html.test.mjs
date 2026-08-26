@@ -36,5 +36,6 @@ test("renders the Vietnamese learning dashboard", async () => {
   assert.match(html, /Delayed recall queue/i);
   assert.match(html, /Feynman Technique/i);
   assert.match(html, /Recent Socratic Dialogues/i);
+  assert.match(html, /Tìm đúng điểm bắt đầu/i);
   assert.doesNotMatch(html, /Starter Project/i);
 });

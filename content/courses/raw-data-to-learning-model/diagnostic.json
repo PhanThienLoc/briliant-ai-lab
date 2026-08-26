@@ -1,0 +1,87 @@
+{
+  "title": "AI/Data Foundation Diagnostic",
+  "description": "10 câu hỏi để xác định điểm bắt đầu trong khóa Từ dữ liệu thô đến mô hình biết học.",
+  "estimatedMinutes": 8,
+  "questions": [
+    {
+      "id": "frame-target",
+      "axis": "problem_framing",
+      "prompt": "Một đội nói: “Hãy dùng AI để giảm khách hàng rời bỏ”. Việc đầu tiên cần khóa là gì?",
+      "options": ["Chọn neural network", "Định nghĩa đơn vị dự đoán, nhãn, thời điểm và hành động sau dự đoán", "Thu thập càng nhiều cột càng tốt", "Tối ưu accuracy"],
+      "correctIndex": 1,
+      "remediationLessonId": "problem-frame"
+    },
+    {
+      "id": "frame-metric",
+      "axis": "problem_framing",
+      "prompt": "Mô hình dự đoán gian lận đạt 99% accuracy trên dữ liệu chỉ có 0,5% giao dịch gian lận. Kết luận tốt nhất là gì?",
+      "options": ["Mô hình đã sẵn sàng", "Accuracy chưa đủ; cần metric gắn với lỗi bỏ sót và báo động giả", "Cần tăng learning rate", "Cần bỏ validation set"],
+      "correctIndex": 1,
+      "remediationLessonId": "problem-frame"
+    },
+    {
+      "id": "data-role",
+      "axis": "data",
+      "prompt": "Trong bài toán dự đoán giá nhà, đâu là label?",
+      "options": ["Diện tích", "Số phòng", "Giá cần dự đoán", "Mã khu vực"],
+      "correctIndex": 2,
+      "remediationLessonId": "data-feature-label"
+    },
+    {
+      "id": "data-leak",
+      "axis": "data",
+      "prompt": "Cột nào gây leakage khi dự đoán khách hàng có hủy dịch vụ trong 30 ngày tới?",
+      "options": ["Số lần đăng nhập 30 ngày qua", "Gói dịch vụ hiện tại", "Ngày tài khoản bị đóng", "Thời gian sử dụng dịch vụ"],
+      "correctIndex": 2,
+      "remediationLessonId": "data-quality"
+    },
+    {
+      "id": "math-dot",
+      "axis": "math",
+      "prompt": "Với x = [2, −1] và w = [3, 4], dot product x·w bằng bao nhiêu?",
+      "options": ["10", "2", "5", "−2"],
+      "correctIndex": 1,
+      "remediationLessonId": "vectors"
+    },
+    {
+      "id": "math-derivative",
+      "axis": "math",
+      "prompt": "Đạo hàm của loss theo một weight cho biết điều gì?",
+      "options": ["Giá trị label", "Độ nhạy và hướng thay đổi của loss khi weight đổi nhỏ", "Số feature", "Xác suất model đúng"],
+      "correctIndex": 1,
+      "remediationLessonId": "derivative"
+    },
+    {
+      "id": "opt-direction",
+      "axis": "optimization",
+      "prompt": "Gradient của loss theo weight là +3. Muốn giảm loss bằng gradient descent, weight nên đi theo hướng nào?",
+      "options": ["Tăng", "Giảm", "Giữ nguyên", "Đổi dấu label"],
+      "correctIndex": 1,
+      "remediationLessonId": "gradient"
+    },
+    {
+      "id": "opt-rate",
+      "axis": "optimization",
+      "prompt": "Loss dao động mạnh và không hội tụ khi training. Nguyên nhân nào nên kiểm tra đầu tiên?",
+      "options": ["Learning rate quá lớn", "Validation set quá nhỏ", "Tên biến quá dài", "Batch có label"],
+      "correctIndex": 0,
+      "remediationLessonId": "learning-rate"
+    },
+    {
+      "id": "validation-role",
+      "axis": "validation",
+      "prompt": "Tập nào nên dùng để chọn max_depth trước lần đánh giá cuối?",
+      "options": ["Train", "Validation", "Test", "Toàn bộ dữ liệu"],
+      "correctIndex": 1,
+      "remediationLessonId": "validation"
+    },
+    {
+      "id": "validation-gap",
+      "axis": "validation",
+      "prompt": "Train score rất cao nhưng validation score thấp hơn nhiều thường là dấu hiệu gì?",
+      "options": ["Underfitting", "Overfitting", "Data đã chuẩn hóa tốt", "Learning rate luôn quá nhỏ"],
+      "correctIndex": 1,
+      "remediationLessonId": "validation"
+    }
+  ]
+}

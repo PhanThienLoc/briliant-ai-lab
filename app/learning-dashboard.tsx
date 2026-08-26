@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { curriculum, todayQueue } from "../lib/curriculum";
+import { diagnosticCatalog, normalizeDiagnostic, scoreDiagnostic, type DiagnosticAxis, type DiagnosticResult } from "../lib/diagnostic";
 import { getLesson, getPythonLab, getReview, lessonCatalog, type LessonContent } from "../lib/lesson-catalog";
 import { runPythonLab, type PythonRunResult, type RunnerPhase } from "../lib/python-runner";
 import {
@@ -86,8 +87,8 @@ function useMasterySnapshot(revision: number): LessonSnapshot[] {
   return snapshot;
 }
 
-function ActiveTopics({ snapshots, onStart, onMap }: { snapshots: LessonSnapshot[]; onStart: (lessonId: string) => void; onMap: () => void }) {
-  const preferredIds = ["problem-frame", "vectors", "validation"];
+function ActiveTopics({ snapshots, recommendedLessonId, onStart, onMap }: { snapshots: LessonSnapshot[]; recommendedLessonId?: string; onStart: (lessonId: string) => void; onMap: () => void }) {
+  const preferredIds = [...new Set([recommendedLessonId, "problem-frame", "vectors", "validation"].filter((id): id is string => Boolean(id)))].slice(0, 3);
   const topics = preferredIds.map((id) => snapshots.find((item) => item.lessonId === id)).filter((item): item is LessonSnapshot => Boolean(item));
   return (
     <section className="template-card achievement-card active-topics" aria-labelledby="active-topics-title">
@@ -104,6 +105,31 @@ function ActiveTopics({ snapshots, onStart, onMap }: { snapshots: LessonSnapshot
             <div className="progress-track"><i className={topic.state === "mastered" ? "emerald" : topic.state === "unexplored" ? "slate" : "indigo"} style={{ width: `${topic.score}%` }} /></div>
           </button>
         ))}
+      </div>
+    </section>
+  );
+}
+
+const diagnosticAxisLabels: Record<DiagnosticAxis, string> = {
+  problem_framing: "Problem framing",
+  data: "Data",
+  math: "Math",
+  optimization: "Optimization",
+  validation: "Validation",
+};
+
+function DiagnosticSummary({ result, onOpen, onStart }: { result: DiagnosticResult | null; onOpen: () => void; onStart: (lessonId: string) => void }) {
+  const recommended = result ? getLesson(result.recommendedLessonId) : null;
+  return (
+    <section className={result ? "diagnostic-summary complete" : "diagnostic-summary"} aria-labelledby="diagnostic-summary-title">
+      <div>
+        <span className="mono-label">ENTRY BASELINE · 8 MINUTES</span>
+        <h2 id="diagnostic-summary-title">{result ? `Diagnostic ${result.score}/${result.total}` : "Tìm đúng điểm bắt đầu"}</h2>
+        <p>{result && recommended ? `Lỗ hổng sớm nhất nằm trước “${recommended.title}”. Đây là next best action của ông.` : "10 câu ngắn đo problem framing, data, math, optimization và validation. Kết quả không cấp mastery."}</p>
+      </div>
+      <div className="diagnostic-summary-action">
+        {result && recommended ? <button className="primary-action" onClick={() => onStart(recommended.id)}>Học bài đề xuất →</button> : <button className="primary-action" onClick={onOpen}>Bắt đầu diagnostic →</button>}
+        {result ? <button className="text-link" onClick={onOpen}>Xem kết quả / làm lại</button> : null}
       </div>
     </section>
   );
@@ -216,15 +242,65 @@ function RecentDialogues({ onStart }: { onStart: () => void }) {
   );
 }
 
-function HubView({ snapshots, onStart, onMap, onChecklist }: { snapshots: LessonSnapshot[]; onStart: (lessonId: string) => void; onMap: () => void; onChecklist: () => void }) {
+function HubView({ snapshots, diagnostic, onDiagnostic, onStart, onMap, onChecklist }: { snapshots: LessonSnapshot[]; diagnostic: DiagnosticResult | null; onDiagnostic: () => void; onStart: (lessonId: string) => void; onMap: () => void; onChecklist: () => void }) {
   return (
     <div className="hub-canvas">
       <header className="template-page-header"><h1>Learning Hub</h1><p>Your current academic focus and cognitive progress overview.</p></header>
-      <ActiveTopics snapshots={snapshots} onStart={onStart} onMap={onMap} />
+      <DiagnosticSummary result={diagnostic} onOpen={onDiagnostic} onStart={onStart} />
+      <ActiveTopics snapshots={snapshots} recommendedLessonId={diagnostic?.recommendedLessonId} onStart={onStart} onMap={onMap} />
       <div className="dashboard-grid"><CognitiveDepth snapshots={snapshots} /><AspectAnalysis snapshots={snapshots} onOpen={onChecklist} /></div>
       <ReviewQueue snapshots={snapshots} onStart={onStart} />
       <FeynmanBlock onStart={() => onStart("vectors")} />
       <RecentDialogues onStart={() => onStart("vectors")} />
+    </div>
+  );
+}
+
+function DiagnosticView({ previousResult, onComplete, onClose, onStart }: { previousResult: DiagnosticResult | null; onComplete: (result: DiagnosticResult) => void; onClose: () => void; onStart: (lessonId: string) => void }) {
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [index, setIndex] = useState(0);
+  const [result, setResult] = useState<DiagnosticResult | null>(previousResult);
+  const question = diagnosticCatalog.questions[index];
+  const answer = question ? answers[question.id] : undefined;
+
+  const finish = () => {
+    const next = scoreDiagnostic(answers);
+    setResult(next);
+    onComplete(next);
+  };
+  const restart = () => {
+    setAnswers({});
+    setIndex(0);
+    setResult(null);
+  };
+
+  if (result) {
+    const recommended = getLesson(result.recommendedLessonId);
+    const bandCopy = result.band === "foundation" ? "Xây nền có chủ đích" : result.band === "building" ? "Đang kết nối các mảnh kiến thức" : "Sẵn sàng cho bài tích hợp";
+    return (
+      <div className="diagnostic-canvas">
+        <button className="back-link diagnostic-back" onClick={onClose}>← Learning Hub</button>
+        <section className="diagnostic-result">
+          <header><span className="mono-label">BASELINE RECORDED</span><strong>{result.score}/{result.total}</strong><h1>{bandCopy}</h1><p>Điểm này chỉ chọn lộ trình, không được tính là bằng chứng mastery.</p></header>
+          <div className="diagnostic-axis-grid">
+            {(Object.keys(diagnosticAxisLabels) as DiagnosticAxis[]).map((axis) => { const value = result.axisScores[axis]; const percent = Math.round(value.correct / value.total * 100); return <article key={axis}><div><span>{diagnosticAxisLabels[axis]}</span><strong>{value.correct}/{value.total}</strong></div><div className="progress-track"><i className={percent === 100 ? "emerald" : percent > 0 ? "indigo" : "slate"} style={{ width: `${percent}%` }} /></div></article>; })}
+          </div>
+          <aside className="diagnostic-recommendation"><span className="mono-label">EARLIEST KNOWLEDGE GAP</span><h2>{recommended.title}</h2><p>{recommended.outcome}</p><button className="primary-action" onClick={() => onStart(recommended.id)}>Bắt đầu bài đề xuất →</button></aside>
+          <footer><button className="text-link" onClick={restart}>Làm lại diagnostic</button><button className="outline-action" onClick={onClose}>Quay lại Hub</button></footer>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="diagnostic-canvas">
+      <button className="back-link diagnostic-back" onClick={onClose}>← Learning Hub</button>
+      <section className="diagnostic-panel">
+        <header><div><span className="mono-label">FOUNDATION DIAGNOSTIC</span><h1>{diagnosticCatalog.title}</h1></div><strong>{index + 1}/{diagnosticCatalog.questions.length}</strong></header>
+        <div className="diagnostic-progress"><i style={{ width: `${(index + 1) / diagnosticCatalog.questions.length * 100}%` }} /></div>
+        <div className="diagnostic-question"><span>{diagnosticAxisLabels[question.axis]}</span><h2>{question.prompt}</h2><div className="diagnostic-options">{question.options.map((option, optionIndex) => <button className={answer === optionIndex ? "selected" : ""} key={option} onClick={() => setAnswers((current) => ({ ...current, [question.id]: optionIndex }))}><span>{String.fromCharCode(65 + optionIndex)}</span>{option}</button>)}</div></div>
+        <footer><button className="outline-action" disabled={index === 0} onClick={() => setIndex((current) => Math.max(0, current - 1))}>← Câu trước</button><button className="primary-action" disabled={answer === undefined} onClick={() => index === diagnosticCatalog.questions.length - 1 ? finish() : setIndex((current) => current + 1)}>{index === diagnosticCatalog.questions.length - 1 ? "Hoàn tất diagnostic" : "Câu tiếp theo →"}</button></footer>
+      </section>
     </div>
   );
 }
@@ -593,12 +669,31 @@ function MobileNav({ view, labOpen, onView, onLab }: { view: View; labOpen: bool
 export function LearningDashboard() {
   const [view, setView] = useState<View>("hub");
   const [labOpen, setLabOpen] = useState(false);
+  const [diagnosticOpen, setDiagnosticOpen] = useState(false);
+  const [diagnostic, setDiagnostic] = useState<DiagnosticResult | null>(null);
   const [activeLessonId, setActiveLessonId] = useState("vectors");
   const [masteryRevision, setMasteryRevision] = useState(0);
   const snapshots = useMasterySnapshot(masteryRevision);
-  const openView = (next: View) => { setView(next); setLabOpen(false); setMasteryRevision((value) => value + 1); };
-  const openLesson = (lessonId = "vectors") => { setActiveLessonId(lessonId); setLabOpen(true); };
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        setDiagnostic(normalizeDiagnostic(JSON.parse(window.localStorage.getItem("briliantai.diagnostic.v1") ?? "null")));
+      } catch {
+        setDiagnostic(null);
+      }
+    });
+  }, []);
+  const openView = (next: View) => { setView(next); setLabOpen(false); setDiagnosticOpen(false); setMasteryRevision((value) => value + 1); };
+  const openLesson = (lessonId = "vectors") => { setActiveLessonId(lessonId); setDiagnosticOpen(false); setLabOpen(true); };
   const closeLesson = () => { setLabOpen(false); setMasteryRevision((value) => value + 1); };
+  const completeDiagnostic = (result: DiagnosticResult) => {
+    setDiagnostic(result);
+    try {
+      window.localStorage.setItem("briliantai.diagnostic.v1", JSON.stringify(result));
+    } catch {
+      // The current result remains available in memory when storage is unavailable.
+    }
+  };
 
   return (
     <main className="app-shell" id="page-top">
@@ -606,9 +701,10 @@ export function LearningDashboard() {
       <MobileNav view={view} labOpen={labOpen} onView={openView} onLab={() => openLesson(activeLessonId)} />
       <div className={labOpen ? "content-area lab-area" : "content-area"}>
         {labOpen ? <SocraticLab key={activeLessonId} lessonId={activeLessonId} onClose={closeLesson} /> : null}
-        {!labOpen && view === "hub" ? <HubView snapshots={snapshots} onStart={openLesson} onMap={() => openView("architect")} onChecklist={() => openView("checklist")} /> : null}
-        {!labOpen && view === "architect" ? <ArchitectView snapshots={snapshots} onStart={openLesson} /> : null}
-        {!labOpen && view === "checklist" ? <ChecklistView snapshots={snapshots} onStart={() => openLesson("vectors")} onMap={() => openView("architect")} /> : null}
+        {diagnosticOpen && !labOpen ? <DiagnosticView previousResult={diagnostic} onComplete={completeDiagnostic} onClose={() => setDiagnosticOpen(false)} onStart={openLesson} /> : null}
+        {!labOpen && !diagnosticOpen && view === "hub" ? <HubView snapshots={snapshots} diagnostic={diagnostic} onDiagnostic={() => setDiagnosticOpen(true)} onStart={openLesson} onMap={() => openView("architect")} onChecklist={() => openView("checklist")} /> : null}
+        {!labOpen && !diagnosticOpen && view === "architect" ? <ArchitectView snapshots={snapshots} onStart={openLesson} /> : null}
+        {!labOpen && !diagnosticOpen && view === "checklist" ? <ChecklistView snapshots={snapshots} onStart={() => openLesson("vectors")} onMap={() => openView("architect")} /> : null}
       </div>
     </main>
   );
