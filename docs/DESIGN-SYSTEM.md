@@ -2,64 +2,51 @@
 
 ## Design promise
 
-BriliantAI is a thinking workbench, not a SaaS dashboard and not an AI chat wrapper. Every prominent visual must help the learner predict, manipulate, compare, explain, or retrieve knowledge.
+BriliantAI is a structured academic workspace for understanding AI, Data, algorithms, logic, and their mathematical foundations. The interface follows the supplied Scholaris template: quiet parchment surfaces, strong typographic hierarchy, compact controls, and evidence-based learning states.
 
-The product combines three modes:
+## Product anatomy
 
-1. **Scientific notebook:** authored explanation, evidence, and sources.
-2. **Interactive instrument:** changing an input immediately changes every linked representation.
-3. **Mastery map:** progress is represented by evidence, not lesson completion.
+1. **Learning Hub:** active topics, cognitive depth, aspect analysis, the next best learning action, and recent dialogues.
+2. **Socratic Lab:** a split workspace that keeps guided inquiry and the learner's mental model visible together.
+3. **Architect:** a knowledge map with grouped concepts and a focused deep-dive panel.
+4. **Checklist:** mastery evidence broken down by aspect rather than lesson completion.
 
-## Interface rules
-
-- The first viewport exposes one next-best learning action and a working model.
-- Ask the learner to predict before revealing the result.
-- Keep explanation and instrument in the same visual context.
-- Show why an activity was selected and which mastery evidence is missing.
-- Prefer lines, spacing, typography, and semantic color over generic cards and shadows.
-- Use a component container only when its boundary has functional meaning.
-- A dashboard metric must lead to a learning decision or move to a detail view.
-- AI tutors elicit reasoning before telling; chat is never the default product shell.
+Desktop uses a fixed 300px navigation rail. Mobile replaces it with a compact top bar and persistent bottom navigation.
 
 ## Visual language
 
 | Role | Token | Value |
 |---|---|---|
-| Ink | `--ink` | `#17231f` |
-| Paper | `--paper` | `#f4f1e8` |
-| Brand | `--forest` | `#143f32` |
-| Primary action | `--acid` | `#d7ef62` |
-| Misconception | `--orange` | `#d96c45` |
-| Experimental variable | `--blue` | `#5478b6` |
-| Control radius | `--radius-control` | `6px` |
-| Panel radius | `--radius-panel` | `14px`, used sparingly |
+| Parchment | `--surface` | `#fcf9f4` |
+| Clean paper | `--surface-lowest` | `#ffffff` |
+| Tonal panel | `--surface-low` | `#f6f3ee` |
+| Container | `--surface-container` | `#f0ede9` |
+| Raised tone | `--surface-high` | `#ebe8e3` |
+| Primary ink | `--on-surface` | `#1c1c19` |
+| Secondary ink | `--on-surface-variant` | `#45464d` |
+| Border | `--outline-variant` | `#c6c6cd` |
+| Active navy | `--primary-container` | `#131b2e` |
+| Mastery emerald | `--secondary` | `#006c49` |
+| Mastery highlight | `--secondary-container` | `#6cf8bb` |
+| AI indigo | `--tertiary-container` | `#07006c` |
+| AI highlight | `--tertiary-fixed` | `#e1e0ff` |
+| Control radius | `--radius-control` | `4px` |
+| Panel radius | `--radius-panel` | `8px` |
 
-- UI typography uses the system sans stack.
-- Explanatory and conceptual headings use an editorial serif stack.
-- Data, evidence labels, and code use a monospace stack.
-- Motion communicates causality or state transition. Do not use `transition: all`.
-- Respect `prefers-reduced-motion` and keep keyboard focus visible.
+- Headings and explanatory content use **Source Serif 4**.
+- Navigation, labels, and controls use **Hanken Grotesk**.
+- Uppercase mono labels are reserved for taxonomy, state, and evidence metadata.
+- Hierarchy comes from spacing, typography, borders, and tonal surfaces; shadows remain minimal.
 
-## Anti-template guardrails
+## Interaction rules
 
-Do not introduce:
+- Ask for a prediction before revealing a result.
+- Keep the explanation and manipulable model in one context.
+- A mastery value must lead to supporting evidence or the next learning action.
+- Socratic prompts elicit reasoning before presenting an explanation.
+- Buttons keep a minimum 44px target and a visible keyboard focus state.
+- Motion communicates state change, respects `prefers-reduced-motion`, and never uses `transition: all`.
 
-- centered marketing heroes before the working surface;
-- purple/blue decorative gradients, glow, or glassmorphism;
-- grids of three identical feature cards;
-- a single large radius and shadow applied to every container;
-- generic Sparkles, Brain, Rocket, Shield, or Zap icons;
-- fake metrics, testimonials, avatars, or activity feeds;
-- decorative charts that do not change a learner decision;
-- generic copy such as “unlock your potential”;
-- a blank sandbox without a guided question.
+## Fidelity guardrails
 
-## Reference lineage
-
-- [Brilliant: Visual Algebra](https://blog.brilliant.org/visual-algebra/) — multiple representations of one concept.
-- [Explorable Explanations](https://worrydream.com/ExplorableExplanations/) — text as a place to think, with guided manipulation.
-- [TensorFlow Playground](https://playground.tensorflow.org/) — visible causal links between controls and model behavior.
-- [Seeing Theory](https://seeing-theory.brown.edu/) — statistics made accessible through interactive visualization.
-- [WCAG 2.2 focus appearance](https://www.w3.org/WAI/WCAG22/Understanding/focus-appearance.html) — visible keyboard focus.
-- [WCAG 2.2 target size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) — operable touch targets.
-- [WCAG 2.2 contrast](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) — readable text and controls.
+Do not introduce centered marketing heroes, glassmorphism, decorative gradients, glowing cards, oversized corner radii, heavy shadows, stock AI imagery, or generic feature grids. New screens should extend the same sidebar, paper surfaces, typography, navy active state, emerald mastery state, and indigo AI state.

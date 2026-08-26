@@ -31,8 +31,9 @@ test("renders the Vietnamese learning dashboard", async () => {
   assert.match(html, /<html[^>]*lang=["']vi["']/i);
   assert.match(html, /<title>BriliantAI Lab<\/title>/i);
   assert.match(html, /Vector và dot product/i);
-  assert.match(html, /Việc đáng làm hôm nay/i);
-  assert.match(html, /Bằng chứng còn thiếu/i);
-  assert.match(html, /Feature contributions/i);
+  assert.match(html, /Learning Hub/i);
+  assert.match(html, /Cognitive Depth/i);
+  assert.match(html, /Feynman Technique/i);
+  assert.match(html, /Recent Socratic Dialogues/i);
   assert.doesNotMatch(html, /Starter Project/i);
 });

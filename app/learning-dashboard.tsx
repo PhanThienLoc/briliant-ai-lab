@@ -1,364 +1,289 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { curriculum, todayQueue } from "../lib/curriculum";
 
-type View = "today" | "map" | "review";
+type View = "hub" | "architect" | "checklist";
+type IconName = View | "lab" | "help" | "plus" | "arrow" | "brain";
 
-const navItems: Array<{ id: View; label: string; hint: string }> = [
-  { id: "today", label: "Hôm nay", hint: "Hành động học quan trọng nhất" },
-  { id: "map", label: "Bản đồ", hint: "Quan hệ giữa các khái niệm" },
-  { id: "review", label: "Ôn tập", hint: "Truy hồi kiến thức đã học" },
+const navItems: Array<{ id: View; label: string }> = [
+  { id: "hub", label: "Learning Hub" },
+  { id: "architect", label: "Architect" },
+  { id: "checklist", label: "Checklist" },
 ];
 
-const evidence = [
-  { label: "Dạng chuẩn", detail: "Đã tự giải", state: "done" },
-  { label: "Dạng biến thể", detail: "Còn thiếu", state: "next" },
-  { label: "Chuyển sang code", detail: "Còn thiếu", state: "open" },
-  { label: "Ôn sau 72 giờ", detail: "Chưa đến hạn", state: "later" },
+function Icon({ name }: { name: IconName }) {
+  if (name === "plus") return <span className="text-icon" aria-hidden="true">＋</span>;
+  if (name === "help") return <span className="text-icon help-icon" aria-hidden="true">?</span>;
+  if (name === "arrow") return <span className="text-icon" aria-hidden="true">→</span>;
+
+  const shapes: Record<Exclude<IconName, "plus" | "help" | "arrow">, ReactNode> = {
+    hub: <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></>,
+    architect: <><circle cx="12" cy="4" r="1.5" /><circle cx="6" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M11.3 5.4L6.7 18.6M12.7 5.4l4.6 13.2M8 15h8" /></>,
+    checklist: <><path d="M5 4h14v16H5z" /><path d="M8 9l2 2 4-4M8 15h8" /></>,
+    lab: <><path d="M9 3h6M10 3v5l-5 9a3 3 0 002.6 4.5h8.8A3 3 0 0019 17l-5-9V3" /><path d="M8 16h8" /></>,
+    brain: <><path d="M10 5a3 3 0 00-5 2.2A3.5 3.5 0 005 14v2a3 3 0 003 3h2V5zM14 5a3 3 0 015 2.2A3.5 3.5 0 0119 14v2a3 3 0 01-3 3h-2V5z" /><path d="M7 10h3M14 10h3M8 15h2M14 15h2" /></>,
+  };
+
+  return <svg className="line-icon" viewBox="0 0 24 24" aria-hidden="true">{shapes[name]}</svg>;
+}
+
+const topics = [
+  { eyebrow: "MATHEMATICS", title: "Vector & Dot Product", mastery: 36, tone: "indigo" },
+  { eyebrow: "DATA ENGINEERING", title: "Data Quality Gates", mastery: 75, tone: "emerald" },
+  { eyebrow: "MACHINE LEARNING", title: "Evaluation Foundations", mastery: 15, tone: "slate" },
 ];
 
-function BrandMark() {
+function ActiveTopics({ onStart, onMap }: { onStart: () => void; onMap: () => void }) {
   return (
-    <span className="brand-mark" aria-hidden="true">
-      <span />
-      <span />
-      <span />
-    </span>
-  );
-}
-
-function ContributionBars({ weight }: { weight: number }) {
-  const rows = [
-    { feature: "x₁", x: 2, weight: 1, tone: "green" },
-    { feature: "x₂", x: -1, weight: 2, tone: "orange" },
-    { feature: "x₃", x: 3, weight, tone: "blue" },
-  ];
-
-  return (
-    <div className="contribution-list" aria-label="Đóng góp của từng feature">
-      {rows.map((row) => {
-        const contribution = row.x * row.weight;
-        const width = Math.min(100, Math.abs(contribution) * 13 + 8);
-        const style = { "--bar-width": `${width}%` } as CSSProperties;
-
-        return (
-          <div className="contribution-row" key={row.feature}>
-            <span className="feature-name">{row.feature}</span>
-            <span className="feature-formula">{row.x} × {row.weight}</span>
-            <span className={`contribution-track ${row.tone}`}>
-              <span style={style} />
-            </span>
-            <output>{Number.isInteger(contribution) ? contribution : contribution.toFixed(1)}</output>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function DotProductWorkbench({ compact = false }: { compact?: boolean }) {
-  const [weight, setWeight] = useState(0.5);
-  const prediction = 2 - 2 + 3 * weight;
-
-  return (
-    <div className={compact ? "workbench compact" : "workbench"}>
-      <div className="workbench-head">
-        <div>
-          <span className="micro-label">MÔ HÌNH ĐANG CHẠY</span>
-          <strong>Feature contributions</strong>
-        </div>
-        <span className="live-indicator"><i />LIVE</span>
+    <section className="template-card achievement-card active-topics" aria-labelledby="active-topics-title">
+      <div className="section-title-row">
+        <h2 id="active-topics-title"><Icon name="brain" /> Active Topics</h2>
+        <button className="text-link" onClick={onMap}>View All</button>
       </div>
-
-      <ContributionBars weight={weight} />
-
-      <div className="workbench-equation" aria-live="polite">
-        <span>ŷ = x · w</span>
-        <strong>{prediction.toFixed(1)}</strong>
-      </div>
-
-      <label className="instrument-control" htmlFor={compact ? "preview-weight" : "lesson-weight"}>
-        <span><strong>Thử thay w₃</strong><small>x₃ đang cố định ở 3</small></span>
-        <output>{weight.toFixed(1)}</output>
-      </label>
-      <input
-        id={compact ? "preview-weight" : "lesson-weight"}
-        type="range"
-        min="-2"
-        max="3"
-        step="0.5"
-        value={weight}
-        onChange={(event) => setWeight(Number(event.target.value))}
-        aria-label="Trọng số thứ ba"
-      />
-      <div className="range-scale" aria-hidden="true"><span>−2</span><span>0</span><span>3</span></div>
-    </div>
-  );
-}
-
-function EvidenceLedger() {
-  return (
-    <section className="evidence-ledger" aria-labelledby="evidence-title">
-      <div className="ledger-heading">
-        <div><p className="kicker">EVIDENCE LEDGER</p><h2 id="evidence-title">Bằng chứng còn thiếu</h2></div>
-        <span className="ledger-count">1/4</span>
-      </div>
-      <div className="evidence-list">
-        {evidence.map((item, index) => (
-          <div className={`evidence-row ${item.state}`} key={item.label}>
-            <span className="evidence-index">0{index + 1}</span>
-            <span><strong>{item.label}</strong><small>{item.detail}</small></span>
-            <i aria-hidden="true" />
-          </div>
+      <div className="topic-grid">
+        {topics.map((topic, index) => (
+          <button className="topic-card" key={topic.title} onClick={index === 0 ? onStart : onMap}>
+            <span className="mono-label">{topic.eyebrow}</span>
+            <strong>{topic.title}</strong>
+            <div className="topic-progress-label"><span>Mastery</span><b className={topic.tone}>{topic.mastery}%</b></div>
+            <div className="progress-track"><i className={topic.tone} style={{ width: `${topic.mastery}%` }} /></div>
+          </button>
         ))}
       </div>
-      <p className="ledger-note">Mastery không tăng vì mở xong bài. Hệ thống đợi bằng chứng độc lập, chuyển giao và ghi nhớ.</p>
     </section>
   );
 }
 
-function MiniLab({ onClose }: { onClose: () => void }) {
+function CognitiveDepth() {
+  const levels = [
+    { label: "Remember", value: 100, status: "complete" },
+    { label: "Understand", value: 85, status: "complete" },
+    { label: "Apply", value: 60, status: "developing" },
+    { label: "Analyze", value: 55, status: "current" },
+    { label: "Evaluate", value: 40, status: "future" },
+    { label: "Create", value: 25, status: "future" },
+  ];
+  return (
+    <section className="template-card depth-card" aria-labelledby="depth-title">
+      <h2 id="depth-title">Cognitive Depth</h2>
+      <p>Aggregate progress across active topics based on Bloom&apos;s Taxonomy.</p>
+      <div className="bloom-chart" aria-label="Bloom taxonomy progress">
+        {levels.map((level) => (
+          <div className="bloom-column" key={level.label}>
+            <span>{level.status === "current" ? "Current" : `${level.value}%`}</span>
+            <div className={`bloom-bar ${level.status}`} style={{ "--bloom-height": `${level.value}%` } as CSSProperties}><b>{level.label}</b></div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AspectAnalysis({ onOpen }: { onOpen: () => void }) {
+  const aspects = [
+    { label: "Conceptual Clarity", score: "14/18", width: 77, tone: "emerald" },
+    { label: "Logical Coherence", score: "9/18", width: 50, tone: "indigo" },
+    { label: "Practical Application", score: "4/18", width: 22, tone: "slate" },
+  ];
+  return (
+    <section className="template-card aspect-card" aria-labelledby="aspect-title">
+      <h2 id="aspect-title">Aspect Analysis</h2>
+      <div className="aspect-list">
+        {aspects.map((aspect) => (
+          <div className="aspect-row" key={aspect.label}>
+            <div><span><i className={aspect.tone} />{aspect.label}</span><strong>{aspect.score}</strong></div>
+            <div className="progress-track"><i className={aspect.tone} style={{ width: `${aspect.width}%` }} /></div>
+          </div>
+        ))}
+      </div>
+      <button className="outline-action" onClick={onOpen}>View Detailed Checklist</button>
+    </section>
+  );
+}
+
+function FeynmanBlock({ onStart }: { onStart: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <section className="hub-section" aria-labelledby="synthesis-title">
+      <h2 className="hub-section-title" id="synthesis-title">✦ Daily Insight Synthesis</h2>
+      <article className="feynman-block">
+        <header>
+          <div><span className="mono-label indigo-text">NEXT BEST ACTION · FEYNMAN TECHNIQUE</span><h3>Vector và dot product</h3></div>
+          <span className="edit-mark" aria-hidden="true">↗</span>
+        </header>
+        <div className="feynman-copy">
+          <p><strong>Simplified:</strong> Một prediction giống như tổng điểm của nhiều giám khảo. Mỗi feature đưa ra một “lá phiếu” bằng <code>xᵢ × wᵢ</code>, sau đó mô hình cộng tất cả lá phiếu lại.</p>
+          <p>In short: <em>Dot product = tổng đóng góp có trọng số của các feature.</em></p>
+          {expanded ? <p className="deep-copy">Bằng chứng còn thiếu: ông cần dự đoán chiều thay đổi của output, kiểm chứng bằng mô hình trực tiếp và chuyển cơ chế đó thành code.</p> : null}
+        </div>
+        <footer>
+          <div><span>Math</span><span>Linear Models</span></div>
+          <div className="feynman-actions"><button className="text-link" onClick={() => setExpanded(!expanded)}>{expanded ? "Collapse" : "Expand Deep-Dive"}</button><button className="primary-action" onClick={onStart}>Open Socratic Lab →</button></div>
+        </footer>
+      </article>
+    </section>
+  );
+}
+
+function RecentDialogues({ onStart }: { onStart: () => void }) {
+  return (
+    <section className="hub-section recent-section" aria-labelledby="recent-title">
+      <div className="section-title-row"><h2 className="hub-section-title" id="recent-title">Recent Socratic Dialogues</h2><span className="quiet-link">View History →</span></div>
+      <div className="recent-list">
+        {todayQueue.slice(0, 3).map((item, index) => (
+          <button className="recent-row" key={item.title} onClick={onStart}>
+            <span className={index === 0 ? "recent-icon active" : "recent-icon"}><Icon name="brain" /></span>
+            <span><strong>{item.title}</strong><small>{item.type} · {index === 0 ? "2 giờ trước" : "Hôm qua"}</small></span>
+            <span className="exchange"><small>Minutes</small><b>{item.minutes}</b></span><Icon name="arrow" />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HubView({ onStart, onMap, onChecklist }: { onStart: () => void; onMap: () => void; onChecklist: () => void }) {
+  return (
+    <div className="hub-canvas">
+      <header className="template-page-header"><h1>Learning Hub</h1><p>Your current academic focus and cognitive progress overview.</p></header>
+      <ActiveTopics onStart={onStart} onMap={onMap} />
+      <div className="dashboard-grid"><CognitiveDepth /><AspectAnalysis onOpen={onChecklist} /></div>
+      <FeynmanBlock onStart={onStart} />
+      <RecentDialogues onStart={onStart} />
+    </div>
+  );
+}
+
+function DotProductModel() {
+  const [weight, setWeight] = useState(0.5);
+  const prediction = 2 - 2 + 3 * weight;
+  const rows = [
+    { name: "x₁", expression: "2 × 1", value: 2, tone: "emerald" },
+    { name: "x₂", expression: "−1 × 2", value: -2, tone: "slate" },
+    { name: "x₃", expression: `3 × ${weight.toFixed(1)}`, value: 3 * weight, tone: "indigo" },
+  ];
+  return (
+    <section className="live-model" aria-labelledby="live-model-title">
+      <header><div><span className="mono-label">LIVE MODEL</span><h3 id="live-model-title">Feature contributions</h3></div><span className="running-dot">● Running</span></header>
+      <div className="contribution-list">
+        {rows.map((row) => <div className="contribution-row" key={row.name}><strong>{row.name}</strong><span>{row.expression}</span><div><i className={row.tone} style={{ width: `${Math.min(100, Math.abs(row.value) * 15 + 8)}%` }} /></div><output>{row.value.toFixed(1)}</output></div>)}
+      </div>
+      <div className="model-output"><span>ŷ = x · w</span><strong>{prediction.toFixed(1)}</strong></div>
+      <label htmlFor="weight-control"><span><strong>Thử thay w₃</strong><small>x₃ đang cố định ở 3</small></span><output>{weight.toFixed(1)}</output></label>
+      <input id="weight-control" type="range" min="-2" max="3" step="0.5" value={weight} onChange={(event) => setWeight(Number(event.target.value))} />
+      <div className="range-labels"><span>−2</span><span>0</span><span>3</span></div>
+    </section>
+  );
+}
+
+function SocraticLab({ onClose }: { onClose: () => void }) {
   const [answer, setAnswer] = useState<number | null>(null);
   const [recorded, setRecorded] = useState(false);
-
   return (
-    <section className="lesson-shell" aria-labelledby="lab-title">
-      <header className="lesson-rail">
-        <button className="back-button" onClick={onClose} aria-label="Quay lại màn hình hôm nay">
-          <span aria-hidden="true">←</span> Hôm nay
-        </button>
-        <div className="lesson-progress"><span style={{ width: "36%" }} /></div>
-        <span className="lesson-position">05 / 14</span>
-      </header>
-
-      <div className="lesson-layout">
-        <article className="lesson-notebook">
-          <p className="kicker">QUAN SÁT 01 · VECTOR</p>
-          <h1 id="lab-title">Một prediction được lắp ráp như thế nào?</h1>
-          <p className="lesson-lead">
-            Mỗi feature đưa một phần bằng <code>xᵢ × wᵢ</code>. Dot product chỉ là thao tác cộng
-            tất cả những phần đóng góp đó lại.
-          </p>
-
-          <div className="notebook-rule" />
-
-          <section className="thinking-prompt" aria-labelledby="prediction-title">
-            <span className="prompt-number">01</span>
-            <div>
-              <p className="kicker">DỰ ĐOÁN TRƯỚC KHI THỬ</p>
-              <h2 id="prediction-title">Khi x₃ dương, tăng w₃ sẽ làm ŷ thay đổi thế nào?</h2>
+    <div className="lab-screen">
+      <header className="lab-topbar"><button className="back-link" onClick={onClose}>← Learning Hub</button><div><span>Target:</span><strong>Analyzing (Bloom&apos;s Level 4)</strong></div><span className="lab-count">05 / 14</span></header>
+      <div className="lab-columns">
+        <section className="inquiry-column">
+          <header className="column-header"><div><h1>Socratic Inquiry</h1><p>Topic: Vector & Dot Product</p></div><span>Depth 03</span></header>
+          <div className="conversation">
+            <article className="message ai-message"><span>✦</span><div><p>Excellent start. Ông đã nhận ra dot product cộng các feature contribution lại.</p><strong>Now, consider the “Why”.</strong><p>Khi x₃ dương, tăng w₃ sẽ làm prediction thay đổi theo chiều nào?</p></div></article>
+            <div className="answer-list">
+              {["Giảm", "Không đổi", "Tăng"].map((label, index) => <button key={label} className={answer === index ? "answer-option selected" : "answer-option"} onClick={() => { setAnswer(index); setRecorded(false); }}><span>{String.fromCharCode(65 + index)}</span>{label}</button>)}
             </div>
-          </section>
-
-          <div className="answer-stack">
-            {["Giảm", "Không đổi", "Tăng"].map((label, index) => (
-              <button
-                key={label}
-                className={answer === index ? "answer selected" : "answer"}
-                onClick={() => { setAnswer(index); setRecorded(false); }}
-                aria-pressed={answer === index}
-              >
-                <span>{String.fromCharCode(65 + index)}</span>{label}
-              </button>
-            ))}
+            {answer !== null ? <article className={answer === 2 ? "message ai-message response correct" : "message ai-message response retry"}><span>✦</span><div><strong>{answer === 2 ? "Đúng — hãy kiểm chứng ở Mental Model." : "Chưa đúng với cơ chế."}</strong><p>{answer === 2 ? "Vì x₃ = 3 > 0, mỗi 0.5 thêm vào w₃ làm ŷ tăng 1.5." : "Theo dõi riêng dấu của x₃ và contribution thứ ba."}</p></div></article> : <p className="hint-text">Dự đoán trước, sau đó kéo thanh trượt ở Mental Model.</p>}
+            <button className="primary-action record-action" disabled={answer !== 2} onClick={() => setRecorded(true)}>{recorded ? "Evidence recorded ✓" : "Record evidence"}</button>
           </div>
-
-          {answer !== null ? (
-            <div className={answer === 2 ? "feedback correct" : "feedback retry"} role="status">
-              <strong>{answer === 2 ? "Đúng — hãy kiểm chứng ở mô hình bên cạnh." : "Chưa khớp với mô hình."}</strong>
-              <p>
-                {answer === 2
-                  ? "Vì x₃ = 3 > 0, mỗi 0.5 thêm vào w₃ làm prediction tăng 1.5. Kéo thanh trượt và theo dõi cả contribution lẫn ŷ."
-                  : "Giữ mắt ở hàng x₃. Dấu của x₃ quyết định chiều thay đổi khi w₃ tăng."}
-              </p>
-            </div>
-          ) : (
-            <p className="answer-hint">Chọn một dự đoán rồi dùng mô hình để phản biện chính mình.</p>
-          )}
-
-          <button className="record-button" disabled={answer !== 2} onClick={() => setRecorded(true)}>
-            {recorded ? "Đã ghi vào evidence ledger ✓" : "Ghi nhận quan sát"}
-          </button>
-        </article>
-
-        <aside className="lesson-instrument" aria-label="Mô hình dot product tương tác">
-          <DotProductWorkbench />
-          <div className="instrument-note">
-            <span>GỢI Ý QUAN SÁT</span>
-            <p>Đổi dấu w₃. Contribution đổi hướng trước khi tổng prediction đổi dấu.</p>
+        </section>
+        <aside className="mental-column">
+          <header className="column-header"><div><h2>Mental Model</h2><p>Live computational workspace</p></div><span className="draft-label">Drafting</span></header>
+          <div className="mental-content">
+            <DotProductModel />
+            <article className="mental-block complete"><span>1. THE CONCEPT</span><h3>Dot Product</h3><p>Tổng các đóng góp xᵢ × wᵢ tạo thành prediction.</p></article>
+            <article className="mental-block active"><span>2. THE MECHANISM (THE “HOW”)</span><h3>Sign and magnitude</h3><p>Dấu của xᵢ quyết định hướng; độ lớn của xᵢ quyết định độ nhạy với wᵢ.</p></article>
+            <article className="mental-block pending"><span>3. APPLICATION (THE “SO WHAT”)</span><h3>Transfer to code</h3><p>To be developed after the verbal explanation.</p></article>
           </div>
         </aside>
       </div>
-    </section>
+    </div>
   );
 }
 
-function TodayView({ onStart }: { onStart: () => void }) {
+function ArchitectView({ onStart }: { onStart: () => void }) {
+  const [selectedId, setSelectedId] = useState("vectors");
+  const selected = curriculum.find((item) => item.id === selectedId) ?? curriculum[0];
+  const groups = [
+    { name: "Nature & Origin", lessons: curriculum.slice(0, 5) },
+    { name: "Use & Test", lessons: curriculum.slice(5, 10) },
+    { name: "Build & Validate", lessons: curriculum.slice(10) },
+  ];
   return (
-    <>
-      <section className="decision-board" aria-labelledby="next-action-title">
-        <div className="decision-copy">
-          <div className="session-line">
-            <span className="session-tag">NEXT BEST ACTION</span>
-            <span>12 phút · Lesson 05/14</span>
-          </div>
-          <p className="course-context">TỪ DỮ LIỆU THÔ ĐẾN MÔ HÌNH BIẾT HỌC</p>
-          <h2 id="next-action-title">Vector và dot product</h2>
-          <p className="decision-reason">
-            Ông đã đọc được công thức. Bước tiếp theo là nhìn thấy từng feature đóng góp vào
-            prediction như thế nào trước khi viết code.
-          </p>
-          <div className="why-now">
-            <span>Vì sao bài này?</span>
-            <p>Mô hình tuyến tính đang bị khóa cho tới khi bằng chứng biến thể này hoàn thành.</p>
-          </div>
-          <button className="primary-action" onClick={onStart}>
-            Mở bàn thí nghiệm <span aria-hidden="true">→</span>
-          </button>
+    <div className="wide-canvas">
+      <header className="map-header"><div><p className="breadcrumb">Hub <span>›</span> AI Foundations <span>›</span> Map</p><h1>AI Foundations</h1><p>A structured matrix of 14 concepts. Select a node to review evidence and deepen mastery.</p></div><div className="map-legend"><span><i className="mastered" />Mastered</span><span><i className="active" />In progress</span><span><i />Unexplored</span></div></header>
+      <div className="map-workspace">
+        <div className="map-groups">
+          {groups.map((group) => <section className="map-group" key={group.name}><h2>{group.name}</h2><div className="node-grid">{group.lessons.map((lesson) => <button key={lesson.id} className={`concept-node ${lesson.status} ${selectedId === lesson.id ? "selected" : ""}`} onClick={() => setSelectedId(lesson.id)}><span>LEVEL {String(curriculum.indexOf(lesson) + 1).padStart(2, "0")}</span><i /><h3>{lesson.title}</h3><p>{lesson.outcome}</p><small>{lesson.statusLabel}</small></button>)}</div></section>)}
         </div>
-        <DotProductWorkbench compact />
-      </section>
-
-      <div className="today-layout">
-        <section className="today-plan" aria-labelledby="today-plan-title">
-          <div className="surface-heading">
-            <div><p className="kicker">32 PHÚT TẬP TRUNG</p><h2 id="today-plan-title">Việc đáng làm hôm nay</h2></div>
-            <span>4 hoạt động</span>
-          </div>
-          <div className="queue-ledger">
-            {todayQueue.map((item, index) => (
-              <div className={index === 0 ? "queue-row current" : "queue-row"} key={item.title}>
-                <span className="queue-order">{String(index + 1).padStart(2, "0")}</span>
-                <div><strong>{item.title}</strong><p>{item.description}</p></div>
-                <span className="queue-type">{item.type}</span>
-                <time>{item.minutes}m</time>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <div className="side-stack">
-          <EvidenceLedger />
-          <aside className="misconception-note">
-            <p className="kicker">MISCONCEPTION #C-07</p>
-            <h2>Correlation chưa phải causation.</h2>
-            <p>Ông đã dùng cùng một suy luận sai hai lần. Review tới sẽ đổi bối cảnh để kiểm tra xem mô hình tinh thần đã sửa chưa.</p>
-            <div><span>Gặp 2 lần</span><span>Ôn sau 1 ngày</span></div>
-          </aside>
-        </div>
+        <aside className="deep-dive">
+          <header><h2>Deep Dive</h2><span>{selected.statusLabel}</span></header>
+          <div className="deep-dive-body"><span className="mono-label indigo-text">CONCEPT · {selected.id.toUpperCase()}</span><h3>{selected.title}</h3><p>{selected.outcome}</p><div className="transfer-test"><strong>TRANSFER TEST</strong><p>{selected.transfer}</p></div><div className="socratic-prompt"><span>✦</span><p>Ông có thể giải thích khi nào quy tắc này thất bại thay vì chỉ nêu định nghĩa?</p></div></div>
+          <button className="deep-dive-action" onClick={onStart}><Icon name="brain" /> Enter Socratic Lab for this node</button>
+        </aside>
       </div>
-    </>
+    </div>
   );
 }
 
-function MapView() {
+function ChecklistView({ onStart, onMap }: { onStart: () => void; onMap: () => void }) {
+  const aspects = [
+    { group: "1. Nature & Origin", title: "Problem & Context", question: "Nó đang giải quyết vấn đề gì và xuất phát từ đâu?", status: "mastered", note: "Phiên Socratic đã xác định rõ bối cảnh và problem domain." },
+    { group: "1. Nature & Origin", title: "Mechanism", question: "Nó hoạt động ở cấp độ cấu trúc như thế nào?", status: "mastered", note: "Ông đã nối công thức với từng feature contribution." },
+    { group: "2. Scope & Boundaries", title: "Boundary & Edge-cases", question: "Khái niệm này vỡ ở đâu?", status: "developing", note: "Đã thấy ranh giới cốt lõi nhưng chưa kiểm tra extreme edge cases." },
+    { group: "3. Impact", title: "Tradeoffs & Consequences", question: "Chi phí của việc áp dụng khái niệm này là gì?", status: "unexplored", note: "Chưa có bằng chứng." },
+  ];
   return (
-    <section className="flat-surface">
-      <div className="surface-heading map-heading">
-        <div><p className="kicker">CONCEPT GRAPH · RELEASE 0</p><h2>Từ dữ liệu thô đến mô hình biết học</h2></div>
-        <span>14 concepts</span>
-      </div>
-      <div className="map-legend"><span><i className="mastered" />Đã vững</span><span><i className="active" />Đang học</span><span><i className="available" />Có thể mở</span><span><i className="locked" />Chưa mở</span></div>
-      <div className="concept-ledger">
-        {curriculum.map((lesson, index) => (
-          <article className={`concept-row ${lesson.status}`} key={lesson.id}>
-            <span className="concept-index">{String(index + 1).padStart(2, "0")}</span>
-            <div className="concept-main"><h3>{lesson.title}</h3><p>{lesson.outcome}</p></div>
-            <p className="concept-transfer">{lesson.transfer}</p>
-            <span className="concept-status">{lesson.statusLabel}</span>
-          </article>
-        ))}
-      </div>
-    </section>
+    <div className="checklist-canvas">
+      <header className="checklist-header"><p className="breadcrumb">Learning Hub <span>›</span> Checklist Deep-Dive</p><h1>My Learning Journey: Aspect Mastery</h1><p>A comprehensive view of cognitive progress. Focus Socratic sessions on Developing and Unexplored aspects to achieve true mastery.</p></header>
+      <section className="mastery-summary"><article className="mastered"><span>MASTERED</span><p><strong>8</strong>/18</p><div><i /></div></article><article className="developing"><span>DEVELOPING</span><p><strong>6</strong>/18</p><div><i /></div></article><article><span>UNEXPLORED</span><p><strong>4</strong>/18</p><div><i /></div></article></section>
+      <section className="aspect-breakdown"><div className="section-title-row"><h2>Aspects Breakdown</h2><button className="text-link" onClick={onMap}>View Network Explorer ↗</button></div><div className="breakdown-list">{aspects.map((aspect, index) => <article className={`breakdown-item ${aspect.status}`} key={`${aspect.title}-${index}`}><span className="aspect-group">{index === 0 || aspects[index - 1].group !== aspect.group ? aspect.group : ""}</span><div className="aspect-detail"><div><h3>{aspect.title}</h3><span>{aspect.status}</span></div><p>{aspect.question}</p><aside><Icon name="brain" /><p>{aspect.note}</p></aside></div></article>)}</div></section>
+      <footer className="checklist-actions"><button className="primary-action" onClick={onStart}>✦ Resume Socratic Session</button><button className="outline-action" onClick={onMap}>View Knowledge Map</button></footer>
+    </div>
   );
 }
 
-function ReviewView() {
-  const reviewItems = useMemo(
-    () => curriculum.filter((lesson) => lesson.status === "mastered" || lesson.status === "active"),
-    [],
-  );
-  const [expanded, setExpanded] = useState<string | null>(reviewItems[0]?.id ?? null);
-
+function Sidebar({ view, labOpen, onView, onLab }: { view: View; labOpen: boolean; onView: (view: View) => void; onLab: () => void }) {
   return (
-    <section className="flat-surface">
-      <div className="surface-heading">
-        <div><p className="kicker">RETRIEVAL PRACTICE</p><h2>Ôn để kiến thức còn dùng được</h2></div>
-        <span>{reviewItems.length} concepts</span>
-      </div>
-      <p className="surface-intro">Không đọc lại lời giải. Hãy thử kéo kiến thức ra khỏi trí nhớ trong một bối cảnh mới.</p>
-      <div className="review-ledger">
-        {reviewItems.map((lesson, index) => {
-          const isOpen = expanded === lesson.id;
-          return (
-            <article className={isOpen ? "review-row open" : "review-row"} key={lesson.id}>
-              <div className="review-when"><strong>{index === 0 ? "Hôm nay" : `+${index * 2 + 1} ngày`}</strong><span>{index === 0 ? "Đã đến hạn" : "Đã lên lịch"}</span></div>
-              <div className="review-main"><h3>{lesson.title}</h3><p>{lesson.transfer}</p></div>
-              <button onClick={() => setExpanded(isOpen ? null : lesson.id)} aria-expanded={isOpen}>
-                {isOpen ? "Thu gọn" : "Xem bằng chứng"}
-              </button>
-              {isOpen ? (
-                <div className="review-evidence">
-                  <span>Không gợi ý</span><span>Bối cảnh mới</span><span>Giải thích bằng lời</span>
-                  <p>Lần đúng gần nhất sẽ không được hiển thị trước khi ông trả lời.</p>
-                </div>
-              ) : null}
-            </article>
-          );
-        })}
-      </div>
-    </section>
+    <aside className="side-nav">
+      <a className="wordmark" href="#page-top">BriliantAI</a>
+      <div className="learner-profile"><span>PL</span><div><strong>Deep Learner</strong><small>Level: Analyzing</small></div></div>
+      <nav aria-label="Điều hướng chính">
+        <button className={view === "hub" && !labOpen ? "side-link active" : "side-link"} onClick={() => onView("hub")}><Icon name="hub" />Learning Hub</button>
+        <button className={labOpen ? "side-link active" : "side-link"} onClick={onLab}><Icon name="lab" />Socratic Lab</button>
+        {navItems.slice(1).map((item) => <button key={item.id} className={view === item.id && !labOpen ? "side-link active" : "side-link"} onClick={() => onView(item.id)}><Icon name={item.id} />{item.label}</button>)}
+      </nav>
+      <div className="side-footer"><button className="new-session" onClick={onLab}><Icon name="plus" />Start New Session</button><button className="utility-link"><Icon name="help" />Help</button></div>
+    </aside>
   );
+}
+
+function MobileNav({ view, labOpen, onView, onLab }: { view: View; labOpen: boolean; onView: (view: View) => void; onLab: () => void }) {
+  return <><header className="mobile-top"><strong>BriliantAI</strong><span>PL</span></header><nav className="mobile-bottom" aria-label="Điều hướng di động"><button className={view === "hub" && !labOpen ? "active" : ""} onClick={() => onView("hub")}><Icon name="hub" /><span>Hub</span></button><button className={labOpen ? "active" : ""} onClick={onLab}><Icon name="lab" /><span>Lab</span></button><button className={view === "architect" && !labOpen ? "active" : ""} onClick={() => onView("architect")}><Icon name="architect" /><span>Map</span></button><button className={view === "checklist" && !labOpen ? "active" : ""} onClick={() => onView("checklist")}><Icon name="checklist" /><span>Checklist</span></button></nav></>;
 }
 
 export function LearningDashboard() {
-  const [view, setView] = useState<View>("today");
-  const [showLab, setShowLab] = useState(false);
+  const [view, setView] = useState<View>("hub");
+  const [labOpen, setLabOpen] = useState(false);
+  const openView = (next: View) => { setView(next); setLabOpen(false); };
 
   return (
-    <main className="app-shell">
-      <aside className="sidebar">
-        <a className="brand" href="#top" aria-label="BriliantAI Lab">
-          <BrandMark /><span>Briliant<span>AI</span></span>
-        </a>
-        <p className="brand-caption">THINKING WORKBENCH</p>
-        <nav aria-label="Điều hướng chính">
-          {navItems.map((item, index) => (
-            <button
-              key={item.id}
-              className={view === item.id ? "nav-button active" : "nav-button"}
-              onClick={() => { setView(item.id); setShowLab(false); }}
-              title={item.hint}
-            >
-              <span className="nav-number">0{index + 1}</span><span>{item.label}</span>
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-foot">
-          <span className="streak">07</span>
-          <div><strong>Ngày liên tiếp</strong><span>Nhịp nhỏ, bằng chứng thật</span></div>
-        </div>
-      </aside>
-
-      <div className="workspace" id="top">
-        {!showLab ? (
-          <header className="topbar">
-            <div>
-              <p className="date-label">THỨ BA · 25.08.2026</p>
-              <h1>{view === "today" ? "Hôm nay chỉ cần làm rõ một ý tưởng." : view === "map" ? "Bản đồ năng lực" : "Ôn tập chủ động"}</h1>
-            </div>
-            <div className="profile-chip" aria-label="Hồ sơ người học">
-              <span className="profile-avatar">PL</span>
-              <div><strong>Thiên Lộc</strong><span>AI · Data path</span></div>
-            </div>
-          </header>
-        ) : null}
-
-        {showLab ? <MiniLab onClose={() => setShowLab(false)} /> : null}
-        {!showLab && view === "today" ? <TodayView onStart={() => setShowLab(true)} /> : null}
-        {!showLab && view === "map" ? <MapView /> : null}
-        {!showLab && view === "review" ? <ReviewView /> : null}
+    <main className="app-shell" id="page-top">
+      <Sidebar view={view} labOpen={labOpen} onView={openView} onLab={() => setLabOpen(true)} />
+      <MobileNav view={view} labOpen={labOpen} onView={openView} onLab={() => setLabOpen(true)} />
+      <div className={labOpen ? "content-area lab-area" : "content-area"}>
+        {labOpen ? <SocraticLab onClose={() => setLabOpen(false)} /> : null}
+        {!labOpen && view === "hub" ? <HubView onStart={() => setLabOpen(true)} onMap={() => openView("architect")} onChecklist={() => openView("checklist")} /> : null}
+        {!labOpen && view === "architect" ? <ArchitectView onStart={() => setLabOpen(true)} /> : null}
+        {!labOpen && view === "checklist" ? <ChecklistView onStart={() => setLabOpen(true)} onMap={() => openView("architect")} /> : null}
       </div>
     </main>
   );
