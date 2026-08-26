@@ -34,3 +34,24 @@ test("the seed lesson contains teachable and traceable content", async () => {
   assert.ok(lesson.sources.length >= 2);
   assert.ok(lesson.sources.every((source) => source.title && source.locator));
 });
+
+test("the release-zero catalog contains fourteen runnable lessons", async () => {
+  const catalogUrl = new URL(
+    "../content/courses/raw-data-to-learning-model/catalog.json",
+    import.meta.url,
+  );
+  const catalog = JSON.parse(await readFile(catalogUrl, "utf8"));
+
+  assert.equal(catalog.lessons.length, 14);
+  assert.equal(new Set(catalog.lessons.map((lesson) => lesson.id)).size, 14);
+  for (const lesson of catalog.lessons) {
+    assert.equal(lesson.activities.length, 5, `${lesson.id} must have five evidence activities`);
+    assert.ok(lesson.concept && lesson.mechanism && lesson.transfer);
+    assert.ok(lesson.source.title && lesson.source.locator);
+    assert.deepEqual(
+      lesson.activities.map((activity) => activity.input.kind),
+      ["choice", lesson.activities[1].input.kind, "text", "code", "choice"],
+    );
+    assert.ok(lesson.activities.every((activity) => activity.hints.length === 2));
+  }
+});

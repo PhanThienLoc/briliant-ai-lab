@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { curriculum, todayQueue } from "../lib/curriculum";
+import { getLesson, type LessonContent } from "../lib/lesson-catalog";
 
 type View = "hub" | "architect" | "checklist";
 type IconName = View | "lab" | "help" | "plus" | "arrow" | "brain";
@@ -177,79 +178,12 @@ function DotProductModel() {
   );
 }
 
-type LessonStageId = "predict" | "calculate" | "explain" | "code" | "transfer";
-
 type LessonProgress = {
   currentIndex: number;
-  completed: LessonStageId[];
-  attempts: Partial<Record<LessonStageId, number>>;
-  hintLevels: Partial<Record<LessonStageId, number>>;
+  completed: string[];
+  attempts: Record<string, number>;
+  hintLevels: Record<string, number>;
 };
-
-const lessonStages: Array<{
-  id: LessonStageId;
-  label: string;
-  eyebrow: string;
-  prompt: string;
-  evidence: string;
-  hints: string[];
-}> = [
-  {
-    id: "predict",
-    label: "Dự đoán",
-    eyebrow: "PREDICT BEFORE INSTRUCTION",
-    prompt: "Dự đoán trước khi thử: khi x₃ dương, tăng w₃ sẽ làm prediction thay đổi theo chiều nào?",
-    evidence: "Nhận ra dấu của feature quyết định hướng thay đổi.",
-    hints: [
-      "Chỉ nhìn contribution thứ ba: x₃ × w₃.",
-      "x₃ = 3 là số dương, nên contribution đi cùng chiều với w₃.",
-    ],
-  },
-  {
-    id: "calculate",
-    label: "Tính toán",
-    eyebrow: "INDEPENDENT RESPONSE",
-    prompt: "Tính [2, −1, 3] · [0.5, 2, 1].",
-    evidence: "Tính đúng dot product mà không nhìn đáp án.",
-    hints: [
-      "Nhân các phần tử cùng vị trí trước khi cộng.",
-      "Biểu thức cần tính là 2×0.5 + (−1)×2 + 3×1.",
-    ],
-  },
-  {
-    id: "explain",
-    label: "Giải thích",
-    eyebrow: "FEYNMAN CHECK",
-    prompt: "Giải thích dot product cho một người chưa học Machine Learning, không chỉ đọc lại công thức.",
-    evidence: "Nối công thức với feature contribution và prediction.",
-    hints: [
-      "Hãy dùng hình ảnh nhiều người cùng đóng góp vào một quyết định.",
-      "Câu trả lời tốt có feature, trọng số, từng đóng góp và bước cộng thành prediction.",
-    ],
-  },
-  {
-    id: "code",
-    label: "Code",
-    eyebrow: "IMPLEMENT THE MECHANISM",
-    prompt: "Hoàn thiện hàm dot_product không dùng numpy.dot.",
-    evidence: "Biến mô hình tinh thần thành thuật toán có thể kiểm tra.",
-    hints: [
-      "Ghép từng cặp xᵢ và wᵢ bằng zip.",
-      "Tính xᵢ × wᵢ cho mỗi cặp, rồi sum toàn bộ contribution.",
-    ],
-  },
-  {
-    id: "transfer",
-    label: "Chuyển giao",
-    eyebrow: "NOVEL CONTEXT",
-    prompt: "Một feature đổi đơn vị từ mét sang centimet, nên giá trị x tăng 100 lần. Muốn prediction giữ nguyên thì weight tương ứng phải đổi thế nào?",
-    evidence: "Giữ bất biến xᵢ × wᵢ trong bối cảnh mới.",
-    hints: [
-      "Prediction giữ nguyên khi contribution xᵢ × wᵢ giữ nguyên.",
-      "Nếu một thừa số tăng 100 lần, thừa số còn lại phải giảm cùng tỷ lệ.",
-    ],
-  },
-];
 
 const initialLessonProgress: LessonProgress = {
   currentIndex: 0,
@@ -258,15 +192,15 @@ const initialLessonProgress: LessonProgress = {
   hintLevels: {},
 };
 
-function EvidenceSummary({ progress }: { progress: LessonProgress }) {
-  const finished = progress.completed.length === lessonStages.length;
+function EvidenceSummary({ progress, total }: { progress: LessonProgress; total: number }) {
+  const finished = progress.completed.length === total;
   const hintsUsed = Object.values(progress.hintLevels).reduce((sum, level) => sum + (level ?? 0), 0);
   const attempts = Object.values(progress.attempts).reduce((sum, count) => sum + (count ?? 0), 0);
   return (
     <section className={finished ? "evidence-summary complete" : "evidence-summary"} aria-label="Tổng kết bằng chứng">
       <span className="mono-label">EVIDENCE LEDGER</span>
-      <h3>{finished ? "Đã đủ bằng chứng luyện tập" : `${progress.completed.length}/5 bằng chứng đã ghi`}</h3>
-      <div><span>Hoạt động</span><strong>{progress.completed.length}/5</strong></div>
+      <h3>{finished ? "Đã đủ bằng chứng luyện tập" : `${progress.completed.length}/${total} bằng chứng đã ghi`}</h3>
+      <div><span>Hoạt động</span><strong>{progress.completed.length}/{total}</strong></div>
       <div><span>Lần thử</span><strong>{attempts}</strong></div>
       <div><span>Gợi ý đã dùng</span><strong>{hintsUsed}</strong></div>
       <p>{finished ? "Trạng thái: Practiced. Mastery chỉ mở sau bài ôn trì hoãn ≥ 72 giờ." : "Hoàn thành từng bước để mở bài chuyển giao."}</p>
@@ -274,35 +208,54 @@ function EvidenceSummary({ progress }: { progress: LessonProgress }) {
   );
 }
 
-function SocraticLab({ onClose }: { onClose: () => void }) {
+function ConceptInstrument({ lesson }: { lesson: LessonContent }) {
+  if (lesson.id === "vectors") return <DotProductModel />;
+  return (
+    <section className="concept-instrument" aria-label={`Mô hình khái niệm ${lesson.title}`}>
+      <header><span className="mono-label">CAUSAL MODEL</span><strong>{lesson.level}</strong></header>
+      <div className="causal-chain">
+        <article><span>01</span><strong>Concept</strong><p>{lesson.concept}</p></article>
+        <i aria-hidden="true">↓</i>
+        <article><span>02</span><strong>Mechanism</strong><p>{lesson.mechanism}</p></article>
+        <i aria-hidden="true">↓</i>
+        <article><span>03</span><strong>Transfer</strong><p>{lesson.transfer}</p></article>
+      </div>
+    </section>
+  );
+}
+
+function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => void }) {
+  const lesson = getLesson(lessonId);
   const [progress, setProgress] = useState<LessonProgress>(initialLessonProgress);
   const [restored, setRestored] = useState(false);
   const [choice, setChoice] = useState<number | null>(null);
   const [response, setResponse] = useState("");
-  const [code, setCode] = useState("def dot_product(x, w):\n    # tính từng contribution\n    return ");
+  const firstCode = lesson.activities.find((activity) => activity.input.kind === "code");
+  const [code, setCode] = useState(firstCode?.input.kind === "code" ? firstCode.input.starter : "");
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null);
 
-  const stage = lessonStages[Math.min(progress.currentIndex, lessonStages.length - 1)];
+  const stage = lesson.activities[Math.min(progress.currentIndex, lesson.activities.length - 1)];
   const stageComplete = progress.completed.includes(stage.id);
-  const lessonComplete = progress.completed.length === lessonStages.length;
+  const lessonComplete = progress.completed.length === lesson.activities.length;
   const hintLevel = progress.hintLevels[stage.id] ?? 0;
+  const storageKey = `briliantai.lesson.${lesson.id}.progress.v2`;
 
   useEffect(() => {
     queueMicrotask(() => {
       try {
-        const saved = window.localStorage.getItem("briliantai.vector-dot-product.progress.v1");
+        const saved = window.localStorage.getItem(storageKey);
         if (saved) setProgress({ ...initialLessonProgress, ...JSON.parse(saved) });
       } catch {
         // Progress remains available for the current session when storage is unavailable.
       }
       setRestored(true);
     });
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if (!restored) return;
-    window.localStorage.setItem("briliantai.vector-dot-product.progress.v1", JSON.stringify(progress));
-  }, [progress, restored]);
+    window.localStorage.setItem(storageKey, JSON.stringify(progress));
+  }, [progress, restored, storageKey]);
 
   const recordAttempt = (correct: boolean, message: string) => {
     setProgress((current) => ({
@@ -316,42 +269,26 @@ function SocraticLab({ onClose }: { onClose: () => void }) {
   };
 
   const checkAnswer = () => {
-    if (stage.id === "predict") {
-      recordAttempt(choice === 2, choice === 2
-        ? "Đúng. Vì x₃ > 0, tăng w₃ làm contribution x₃w₃ và prediction cùng tăng."
-        : "Chưa đúng. Hãy tách riêng x₃ × w₃ và xét dấu của x₃.");
+    if (stage.input.kind === "choice") {
+      const correct = choice === stage.input.correctIndex;
+      recordAttempt(correct, correct ? stage.success : stage.retry);
       return;
     }
-    if (stage.id === "calculate") {
+    if (stage.input.kind === "number") {
       const value = Number(response.replace(",", ".").trim());
-      recordAttempt(value === 2, value === 2
-        ? "Đúng: 1 − 2 + 3 = 2."
-        : "Chưa đúng. Kiểm tra dấu âm ở contribution thứ hai rồi cộng lại.");
+      const correct = Number.isFinite(value) && Math.abs(value - stage.input.expected) <= stage.input.tolerance;
+      recordAttempt(correct, correct ? stage.success : stage.retry);
       return;
     }
-    if (stage.id === "explain") {
+    if (stage.input.kind === "text") {
       const normalized = response.toLocaleLowerCase("vi");
-      const concepts = ["feature", "trọng số", "đóng góp", "cộng", "prediction"].filter((term) => normalized.includes(term));
-      const correct = response.trim().length >= 70 && concepts.length >= 3;
-      recordAttempt(correct, correct
-        ? "Đạt rubric: có thành phần, vai trò của trọng số và cách tạo prediction."
-        : "Câu trả lời còn thiếu cơ chế. Viết ít nhất 2–3 câu và nối feature → trọng số → đóng góp → prediction.");
+      const concepts = stage.input.rubricTerms.filter((term) => normalized.includes(term.toLocaleLowerCase("vi")));
+      const correct = response.trim().length >= stage.input.minLength && concepts.length >= stage.input.requiredTerms;
+      recordAttempt(correct, correct ? stage.success : stage.retry);
       return;
     }
-    if (stage.id === "code") {
-      const hasPairing = /zip\s*\(/.test(code);
-      const hasAggregation = /sum\s*\(|for\s+/.test(code);
-      const hasProduct = /\*/.test(code);
-      const hasReturn = /return\s+/.test(code);
-      const correct = hasPairing && hasAggregation && hasProduct && hasReturn;
-      recordAttempt(correct, correct
-        ? "4/4 hidden checks passed: pairing, multiplication, aggregation, return."
-        : "Hidden checks chưa qua. Hàm cần ghép cặp, nhân từng cặp, cộng kết quả và return.");
-      return;
-    }
-    recordAttempt(choice === 1, choice === 1
-      ? "Đúng. Chia weight cho 100 giữ xᵢ × wᵢ không đổi."
-      : "Chưa đúng. Mục tiêu là giữ contribution xᵢ × wᵢ bất biến.");
+    const correct = stage.input.requiredTokens.every((token) => code.includes(token));
+    recordAttempt(correct, correct ? stage.success : stage.retry);
   };
 
   const useHint = () => {
@@ -362,9 +299,12 @@ function SocraticLab({ onClose }: { onClose: () => void }) {
   };
 
   const nextStage = () => {
-    setProgress((current) => ({ ...current, currentIndex: Math.min(lessonStages.length - 1, current.currentIndex + 1) }));
+    const nextIndex = Math.min(lesson.activities.length - 1, progress.currentIndex + 1);
+    const nextActivity = lesson.activities[nextIndex];
+    setProgress((current) => ({ ...current, currentIndex: nextIndex }));
     setChoice(null);
     setResponse("");
+    setCode(nextActivity.input.kind === "code" ? nextActivity.input.starter : "");
     setFeedback(null);
   };
 
@@ -372,23 +312,25 @@ function SocraticLab({ onClose }: { onClose: () => void }) {
     setProgress(initialLessonProgress);
     setChoice(null);
     setResponse("");
-    setCode("def dot_product(x, w):\n    # tính từng contribution\n    return ");
+    setCode(firstCode?.input.kind === "code" ? firstCode.input.starter : "");
     setFeedback(null);
   };
 
-  const choices = stage.id === "transfer"
-    ? ["Nhân weight với 100", "Chia weight cho 100", "Giữ weight như cũ"]
-    : ["Giảm", "Không đổi", "Tăng"];
+  const canCheck = stage.input.kind === "choice"
+    ? choice !== null
+    : stage.input.kind === "code"
+      ? code.trim().length > 0
+      : response.trim().length > 0;
 
   return (
     <div className="lab-screen">
-      <header className="lab-topbar"><button className="back-link" onClick={onClose}>← Learning Hub</button><div><span>Lesson runtime:</span><strong>{lessonComplete ? "Practiced" : stage.label}</strong></div><span className="lab-count">{progress.completed.length} / 5</span></header>
+      <header className="lab-topbar"><button className="back-link" onClick={onClose}>← Learning Hub</button><div><span>Lesson runtime:</span><strong>{lessonComplete ? "Practiced" : stage.label}</strong></div><span className="lab-count">{progress.completed.length} / {lesson.activities.length}</span></header>
       <div className="lab-columns">
         <section className="inquiry-column">
-          <header className="column-header"><div><h1>Vector & Dot Product</h1><p>Lesson 05 · From Raw Data to a Learning Model</p></div><span>{lessonComplete ? "PRACTICED" : `STEP ${progress.currentIndex + 1}`}</span></header>
+          <header className="column-header"><div><h1>{lesson.title}</h1><p>{lesson.level} · Từ dữ liệu thô đến mô hình biết học</p></div><span>{lessonComplete ? "PRACTICED" : `STEP ${progress.currentIndex + 1}`}</span></header>
           <div className="conversation">
             <nav className="lesson-stepper" aria-label="Tiến độ bài học">
-              {lessonStages.map((item, index) => <button key={item.id} className={progress.completed.includes(item.id) ? "complete" : index === progress.currentIndex ? "active" : ""} disabled={index > progress.completed.length} onClick={() => { setProgress((current) => ({ ...current, currentIndex: index })); setFeedback(null); setChoice(null); setResponse(""); }}><span>{progress.completed.includes(item.id) ? "✓" : index + 1}</span><small>{item.label}</small></button>)}
+              {lesson.activities.map((item, index) => <button key={item.id} className={progress.completed.includes(item.id) ? "complete" : index === progress.currentIndex ? "active" : ""} disabled={index > progress.completed.length} onClick={() => { setProgress((current) => ({ ...current, currentIndex: index })); setFeedback(null); setChoice(null); setResponse(""); setCode(item.input.kind === "code" ? item.input.starter : ""); }}><span>{progress.completed.includes(item.id) ? "✓" : index + 1}</span><small>{item.label}</small></button>)}
             </nav>
 
             {lessonComplete && stageComplete ? (
@@ -396,7 +338,7 @@ function SocraticLab({ onClose }: { onClose: () => void }) {
                 <span className="finish-mark">✓</span>
                 <p className="mono-label">SESSION COMPLETE</p>
                 <h2>Ông đã xây được một mental model có thể dùng.</h2>
-                <p>Dot product không còn chỉ là công thức: ông đã dự đoán, tính, giải thích, code và chuyển nó sang một tình huống mới.</p>
+                <p>{lesson.title} đã đi qua đủ chuỗi dự đoán, cơ chế, giải thích, code và chuyển giao sang tình huống mới.</p>
                 <button className="outline-action" onClick={resetLesson}>Làm lại không gợi ý</button>
               </section>
             ) : (
@@ -407,15 +349,15 @@ function SocraticLab({ onClose }: { onClose: () => void }) {
                   <p>Bằng chứng cần thu: {stage.evidence}</p>
                 </article>
 
-                {(stage.id === "predict" || stage.id === "transfer") ? (
+                {stage.input.kind === "choice" ? (
                   <div className="answer-list runtime-answers">
-                    {choices.map((label, index) => <button key={label} className={choice === index ? "answer-option selected" : "answer-option"} onClick={() => { setChoice(index); setFeedback(null); }}><span>{String.fromCharCode(65 + index)}</span>{label}</button>)}
+                    {stage.input.options.map((label, index) => <button key={label} className={choice === index ? "answer-option selected" : "answer-option"} onClick={() => { setChoice(index); setFeedback(null); }}><span>{String.fromCharCode(65 + index)}</span>{label}</button>)}
                   </div>
                 ) : null}
 
-                {stage.id === "calculate" ? <label className="response-field"><span>Kết quả của dot product</span><input inputMode="decimal" value={response} onChange={(event) => { setResponse(event.target.value); setFeedback(null); }} placeholder="Nhập một số" /></label> : null}
-                {stage.id === "explain" ? <label className="response-field"><span>Giải thích bằng lời của ông</span><textarea rows={7} value={response} onChange={(event) => { setResponse(event.target.value); setFeedback(null); }} placeholder="Ví dụ: Mỗi feature giống như..." /><small>{response.trim().length}/70 ký tự tối thiểu</small></label> : null}
-                {stage.id === "code" ? <label className="response-field code-field"><span>Python editor · hidden checks</span><textarea rows={8} spellCheck={false} value={code} onChange={(event) => { setCode(event.target.value); setFeedback(null); }} /></label> : null}
+                {stage.input.kind === "number" ? <label className="response-field"><span>Kết quả tính toán</span><input inputMode="decimal" value={response} onChange={(event) => { setResponse(event.target.value); setFeedback(null); }} placeholder="Nhập một số" /></label> : null}
+                {stage.input.kind === "text" ? <label className="response-field"><span>Giải thích bằng lời của ông</span><textarea rows={7} value={response} onChange={(event) => { setResponse(event.target.value); setFeedback(null); }} placeholder="Viết mental model bằng ngôn ngữ của ông..." /><small>{response.trim().length}/{stage.input.minLength} ký tự tối thiểu</small></label> : null}
+                {stage.input.kind === "code" ? <label className="response-field code-field"><span>Python editor · structural checks</span><textarea rows={8} spellCheck={false} value={code} onChange={(event) => { setCode(event.target.value); setFeedback(null); }} /></label> : null}
 
                 <div className="hint-ladder">
                   <div><span>Hint ladder</span><small>{hintLevel}/2 · dùng hint sẽ được ghi vào evidence</small></div>
@@ -426,7 +368,7 @@ function SocraticLab({ onClose }: { onClose: () => void }) {
                 {feedback ? <div className={feedback.correct ? "runtime-feedback correct" : "runtime-feedback retry"} role="status"><strong>{feedback.correct ? "Bằng chứng hợp lệ" : "Chưa đạt rubric"}</strong><p>{feedback.message}</p></div> : null}
 
                 <div className="activity-actions">
-                  <button className="primary-action" onClick={stageComplete ? nextStage : checkAnswer} disabled={stage.id !== "code" && stage.id !== "explain" && stage.id !== "calculate" && choice === null}>{stageComplete ? (progress.currentIndex === lessonStages.length - 1 ? "Hoàn tất phiên học" : "Hoạt động tiếp theo →") : "Kiểm tra câu trả lời"}</button>
+                  <button className="primary-action" onClick={stageComplete ? nextStage : checkAnswer} disabled={!stageComplete && !canCheck}>{stageComplete ? (progress.currentIndex === lesson.activities.length - 1 ? "Hoàn tất phiên học" : "Hoạt động tiếp theo →") : "Kiểm tra câu trả lời"}</button>
                   <span>{progress.attempts[stage.id] ?? 0} lần thử</span>
                 </div>
               </>
@@ -436,11 +378,12 @@ function SocraticLab({ onClose }: { onClose: () => void }) {
         <aside className="mental-column">
           <header className="column-header"><div><h2>Mental Model</h2><p>Live computational workspace</p></div><span className="draft-label">{lessonComplete ? "Practiced" : "Building"}</span></header>
           <div className="mental-content">
-            <DotProductModel />
-            <EvidenceSummary progress={progress} />
-            <article className={progress.completed.includes("explain") ? "mental-block complete" : "mental-block active"}><span>1. THE CONCEPT</span><h3>Weighted contribution</h3><p>Mỗi xᵢ × wᵢ là một đóng góp; tổng các đóng góp tạo thành prediction.</p></article>
-            <article className={progress.completed.includes("code") ? "mental-block complete" : progress.currentIndex >= 2 ? "mental-block active" : "mental-block pending"}><span>2. THE MECHANISM</span><h3>Pair → multiply → aggregate</h3><p>Ghép feature với weight, nhân từng cặp, rồi cộng toàn bộ kết quả.</p></article>
-            <article className={progress.completed.includes("transfer") ? "mental-block complete" : progress.currentIndex === 4 ? "mental-block active" : "mental-block pending"}><span>3. TRANSFER</span><h3>Preserve the contribution</h3><p>Khi scale của feature đổi, điều chỉnh weight nghịch đảo để xᵢ × wᵢ giữ nguyên.</p></article>
+            <ConceptInstrument lesson={lesson} />
+            <EvidenceSummary progress={progress} total={lesson.activities.length} />
+            <article className={progress.completed.includes(lesson.activities[2].id) ? "mental-block complete" : "mental-block active"}><span>1. THE CONCEPT</span><h3>{lesson.title}</h3><p>{lesson.concept}</p></article>
+            <article className={progress.completed.includes(lesson.activities[3].id) ? "mental-block complete" : progress.currentIndex >= 2 ? "mental-block active" : "mental-block pending"}><span>2. THE MECHANISM</span><h3>How it works</h3><p>{lesson.mechanism}</p></article>
+            <article className={progress.completed.includes(lesson.activities[4].id) ? "mental-block complete" : progress.currentIndex === 4 ? "mental-block active" : "mental-block pending"}><span>3. TRANSFER</span><h3>Where it matters</h3><p>{lesson.transfer}</p></article>
+            <p className="source-note"><strong>Nguồn:</strong> {lesson.source.title} · {lesson.source.locator}</p>
           </div>
         </aside>
       </div>
@@ -448,7 +391,7 @@ function SocraticLab({ onClose }: { onClose: () => void }) {
   );
 }
 
-function ArchitectView({ onStart }: { onStart: () => void }) {
+function ArchitectView({ onStart }: { onStart: (lessonId: string) => void }) {
   const [selectedId, setSelectedId] = useState("vectors");
   const selected = curriculum.find((item) => item.id === selectedId) ?? curriculum[0];
   const groups = [
@@ -466,7 +409,7 @@ function ArchitectView({ onStart }: { onStart: () => void }) {
         <aside className="deep-dive">
           <header><h2>Deep Dive</h2><span>{selected.statusLabel}</span></header>
           <div className="deep-dive-body"><span className="mono-label indigo-text">CONCEPT · {selected.id.toUpperCase()}</span><h3>{selected.title}</h3><p>{selected.outcome}</p><div className="transfer-test"><strong>TRANSFER TEST</strong><p>{selected.transfer}</p></div><div className="socratic-prompt"><span>✦</span><p>Ông có thể giải thích khi nào quy tắc này thất bại thay vì chỉ nêu định nghĩa?</p></div></div>
-          <button className="deep-dive-action" onClick={onStart}><Icon name="brain" /> Enter Socratic Lab for this node</button>
+          <button className="deep-dive-action" onClick={() => onStart(selected.id)}><Icon name="brain" /> Enter Socratic Lab for this node</button>
         </aside>
       </div>
     </div>
@@ -512,17 +455,19 @@ function MobileNav({ view, labOpen, onView, onLab }: { view: View; labOpen: bool
 export function LearningDashboard() {
   const [view, setView] = useState<View>("hub");
   const [labOpen, setLabOpen] = useState(false);
+  const [activeLessonId, setActiveLessonId] = useState("vectors");
   const openView = (next: View) => { setView(next); setLabOpen(false); };
+  const openLesson = (lessonId = "vectors") => { setActiveLessonId(lessonId); setLabOpen(true); };
 
   return (
     <main className="app-shell" id="page-top">
-      <Sidebar view={view} labOpen={labOpen} onView={openView} onLab={() => setLabOpen(true)} />
-      <MobileNav view={view} labOpen={labOpen} onView={openView} onLab={() => setLabOpen(true)} />
+      <Sidebar view={view} labOpen={labOpen} onView={openView} onLab={() => openLesson(activeLessonId)} />
+      <MobileNav view={view} labOpen={labOpen} onView={openView} onLab={() => openLesson(activeLessonId)} />
       <div className={labOpen ? "content-area lab-area" : "content-area"}>
-        {labOpen ? <SocraticLab onClose={() => setLabOpen(false)} /> : null}
-        {!labOpen && view === "hub" ? <HubView onStart={() => setLabOpen(true)} onMap={() => openView("architect")} onChecklist={() => openView("checklist")} /> : null}
-        {!labOpen && view === "architect" ? <ArchitectView onStart={() => setLabOpen(true)} /> : null}
-        {!labOpen && view === "checklist" ? <ChecklistView onStart={() => setLabOpen(true)} onMap={() => openView("architect")} /> : null}
+        {labOpen ? <SocraticLab key={activeLessonId} lessonId={activeLessonId} onClose={() => setLabOpen(false)} /> : null}
+        {!labOpen && view === "hub" ? <HubView onStart={() => openLesson("vectors")} onMap={() => openView("architect")} onChecklist={() => openView("checklist")} /> : null}
+        {!labOpen && view === "architect" ? <ArchitectView onStart={openLesson} /> : null}
+        {!labOpen && view === "checklist" ? <ChecklistView onStart={() => openLesson("vectors")} onMap={() => openView("architect")} /> : null}
       </div>
     </main>
   );

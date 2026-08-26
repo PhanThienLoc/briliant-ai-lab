@@ -2,6 +2,13 @@
 
 Kế hoạch triển khai bám theo nguyên tắc: chứng minh vòng lặp học tập trước, mở rộng catalog sau.
 
+## Trạng thái hiện tại
+
+- Tuần 1 — hoàn thành: PRD, kiến trúc, lesson schema và CI.
+- Tuần 2 — hoàn thành MVP: runtime data-driven hỗ trợ choice, number, explanation và structural code checks; có hint ladder và evidence ledger.
+- Tuần 3 — hoàn thành bản nội dung đầu: đủ 14 lesson, mỗi lesson có 5 hoạt động, mental model, transfer test và nguồn. Nội dung vẫn cần authoring QA trước pilot.
+- Milestone kế tiếp: code lab thực thi an toàn và mastery engine dùng evidence thật thay cho trạng thái trình diễn.
+
 ## Release 0 — MVP tám tuần
 
 | Tuần | Mục tiêu | Kết quả kiểm chứng |

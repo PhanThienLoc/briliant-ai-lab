@@ -8,6 +8,10 @@ test("the interface follows the structured academic template", async () => {
     new URL("../app/learning-dashboard.tsx", import.meta.url),
     "utf8",
   );
+  const catalog = await readFile(
+    new URL("../content/courses/raw-data-to-learning-model/catalog.json", import.meta.url),
+    "utf8",
+  );
 
   assert.match(css, /--radius-control:\s*4px/);
   assert.match(css, /--radius-panel:\s*8px/);
@@ -21,14 +25,16 @@ test("the interface follows the structured academic template", async () => {
   assert.doesNotMatch(css, /transition:\s*all/i);
   assert.match(dashboard, /NEXT BEST ACTION/);
   assert.match(dashboard, /Bằng chứng còn thiếu/);
-  assert.match(dashboard, /Dự đoán trước/);
+  assert.match(catalog, /Dự đoán trước/);
   assert.match(dashboard, /Socratic Lab/);
   assert.match(dashboard, /Aspects Breakdown/);
-  assert.match(dashboard, /PREDICT BEFORE INSTRUCTION/);
-  assert.match(dashboard, /FEYNMAN CHECK/);
-  assert.match(dashboard, /IMPLEMENT THE MECHANISM/);
-  assert.match(dashboard, /NOVEL CONTEXT/);
+  assert.match(catalog, /PREDICT BEFORE INSTRUCTION/);
+  assert.match(catalog, /FEYNMAN CHECK/);
+  assert.match(catalog, /IMPLEMENT THE MECHANISM/);
+  assert.match(catalog, /NOVEL CONTEXT/);
   assert.match(dashboard, /localStorage\.setItem/);
   assert.match(dashboard, /Mastery chỉ mở sau bài ôn trì hoãn ≥ 72 giờ/);
-  assert.match(dashboard, /Hidden checks/);
+  assert.match(dashboard, /structural checks/);
+  assert.match(dashboard, /getLesson\(lessonId\)/);
+  assert.match(dashboard, /lesson\.activities\.map/);
 });
