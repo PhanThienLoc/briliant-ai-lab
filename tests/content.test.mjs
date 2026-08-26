@@ -55,3 +55,17 @@ test("the release-zero catalog contains fourteen runnable lessons", async () => 
     assert.ok(lesson.activities.every((activity) => activity.hints.length === 2));
   }
 });
+
+test("every lesson has a distinct delayed-review transfer check", async () => {
+  const catalog = JSON.parse(await readFile(new URL("../content/courses/raw-data-to-learning-model/catalog.json", import.meta.url), "utf8"));
+  const reviews = JSON.parse(await readFile(new URL("../content/courses/raw-data-to-learning-model/reviews.json", import.meta.url), "utf8"));
+
+  assert.deepEqual(Object.keys(reviews).sort(), catalog.lessons.map((lesson) => lesson.id).sort());
+  for (const [lessonId, review] of Object.entries(reviews)) {
+    assert.ok(review.prompt.length > 20, `${lessonId} needs a meaningful review prompt`);
+    assert.ok(review.options.length >= 3);
+    assert.ok(Number.isInteger(review.correctIndex));
+    assert.ok(review.correctIndex >= 0 && review.correctIndex < review.options.length);
+    assert.ok(review.explanation.length > 30);
+  }
+});

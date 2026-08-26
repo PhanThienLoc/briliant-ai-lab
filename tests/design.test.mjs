@@ -33,8 +33,12 @@ test("the interface follows the structured academic template", async () => {
   assert.match(catalog, /IMPLEMENT THE MECHANISM/);
   assert.match(catalog, /NOVEL CONTEXT/);
   assert.match(dashboard, /localStorage\.setItem/);
-  assert.match(dashboard, /Mastery chỉ mở sau bài ôn trì hoãn ≥ 72 giờ/);
+  assert.match(dashboard, /Mastery chỉ mở sau bài ôn độc lập ≥ 72 giờ/);
   assert.match(dashboard, /structural checks/);
   assert.match(dashboard, /getLesson\(lessonId\)/);
   assert.match(dashboard, /lesson\.activities\.map/);
+  assert.match(dashboard, /Delayed recall queue/);
+  assert.match(dashboard, /DELAYED TRANSFER/);
+  assert.match(dashboard, /useMasterySnapshot/);
+  assert.match(dashboard, /lessonEvidenceScore/);
 });

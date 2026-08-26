@@ -1,4 +1,5 @@
 import rawCatalog from "../content/courses/raw-data-to-learning-model/catalog.json";
+import rawReviews from "../content/courses/raw-data-to-learning-model/reviews.json";
 
 export type ChoiceInput = {
   kind: "choice";
@@ -53,8 +54,20 @@ export type CourseCatalog = {
   lessons: LessonContent[];
 };
 
+export type ReviewActivity = {
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+};
+
 export const lessonCatalog = rawCatalog as CourseCatalog;
+export const reviewCatalog = rawReviews as Record<string, ReviewActivity>;
 
 export function getLesson(lessonId: string): LessonContent {
   return lessonCatalog.lessons.find((lesson) => lesson.id === lessonId) ?? lessonCatalog.lessons[0];
+}
+
+export function getReview(lessonId: string): ReviewActivity {
+  return reviewCatalog[lessonId] ?? reviewCatalog[lessonCatalog.lessons[0].id];
 }

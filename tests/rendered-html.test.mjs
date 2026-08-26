@@ -32,7 +32,8 @@ test("renders the Vietnamese learning dashboard", async () => {
   assert.match(html, /<title>BriliantAI Lab<\/title>/i);
   assert.match(html, /Vector và dot product/i);
   assert.match(html, /Learning Hub/i);
-  assert.match(html, /Cognitive Depth/i);
+  assert.match(html, /Evidence Depth/i);
+  assert.match(html, /Delayed recall queue/i);
   assert.match(html, /Feynman Technique/i);
   assert.match(html, /Recent Socratic Dialogues/i);
   assert.doesNotMatch(html, /Starter Project/i);

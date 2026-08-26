@@ -2,7 +2,18 @@
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { curriculum, todayQueue } from "../lib/curriculum";
-import { getLesson, type LessonContent } from "../lib/lesson-catalog";
+import { getLesson, getReview, lessonCatalog, type LessonContent } from "../lib/lesson-catalog";
+import {
+  hoursUntilReview,
+  initialLessonProgress,
+  lessonEvidenceScore,
+  masteryLabel,
+  masteryState,
+  normalizeProgress,
+  reviewDueAt,
+  type LessonProgress,
+  type MasteryState,
+} from "../lib/mastery-engine";
 
 type View = "hub" | "architect" | "checklist";
 type IconName = View | "lab" | "help" | "plus" | "arrow" | "brain";
@@ -29,13 +40,54 @@ function Icon({ name }: { name: IconName }) {
   return <svg className="line-icon" viewBox="0 0 24 24" aria-hidden="true">{shapes[name]}</svg>;
 }
 
-const topics = [
-  { eyebrow: "MATHEMATICS", title: "Vector & Dot Product", mastery: 36, tone: "indigo" },
-  { eyebrow: "DATA ENGINEERING", title: "Data Quality Gates", mastery: 75, tone: "emerald" },
-  { eyebrow: "MACHINE LEARNING", title: "Evaluation Foundations", mastery: 15, tone: "slate" },
-];
+type LessonSnapshot = {
+  lessonId: string;
+  title: string;
+  level: string;
+  score: number;
+  state: MasteryState;
+  progress: LessonProgress;
+};
 
-function ActiveTopics({ onStart, onMap }: { onStart: () => void; onMap: () => void }) {
+function useMasterySnapshot(revision: number): LessonSnapshot[] {
+  const [snapshot, setSnapshot] = useState<LessonSnapshot[]>(() => lessonCatalog.lessons.map((lesson) => ({
+    lessonId: lesson.id,
+    title: lesson.title,
+    level: lesson.level,
+    score: 0,
+    state: "unexplored",
+    progress: initialLessonProgress,
+  })));
+  useEffect(() => {
+    queueMicrotask(() => {
+      const next = lessonCatalog.lessons.map((lesson) => {
+        let stored: unknown = null;
+        try {
+          const current = window.localStorage.getItem(`briliantai.lesson.${lesson.id}.progress.v3`);
+          const legacy = window.localStorage.getItem(`briliantai.lesson.${lesson.id}.progress.v2`);
+          stored = JSON.parse(current ?? legacy ?? "null");
+        } catch {
+          stored = null;
+        }
+        const progress = normalizeProgress(stored, lesson.activities.length);
+        return {
+          lessonId: lesson.id,
+          title: lesson.title,
+          level: lesson.level,
+          score: lessonEvidenceScore(progress, lesson.activities.length),
+          state: masteryState(progress, lesson.activities.length),
+          progress,
+        };
+      });
+      setSnapshot(next);
+    });
+  }, [revision]);
+  return snapshot;
+}
+
+function ActiveTopics({ snapshots, onStart, onMap }: { snapshots: LessonSnapshot[]; onStart: (lessonId: string) => void; onMap: () => void }) {
+  const preferredIds = ["problem-frame", "vectors", "validation"];
+  const topics = preferredIds.map((id) => snapshots.find((item) => item.lessonId === id)).filter((item): item is LessonSnapshot => Boolean(item));
   return (
     <section className="template-card achievement-card active-topics" aria-labelledby="active-topics-title">
       <div className="section-title-row">
@@ -43,12 +95,12 @@ function ActiveTopics({ onStart, onMap }: { onStart: () => void; onMap: () => vo
         <button className="text-link" onClick={onMap}>View All</button>
       </div>
       <div className="topic-grid">
-        {topics.map((topic, index) => (
-          <button className="topic-card" key={topic.title} onClick={index === 0 ? onStart : onMap}>
-            <span className="mono-label">{topic.eyebrow}</span>
+        {topics.map((topic) => (
+          <button className="topic-card" key={topic.title} onClick={() => onStart(topic.lessonId)}>
+            <span className="mono-label">{topic.level.toUpperCase()}</span>
             <strong>{topic.title}</strong>
-            <div className="topic-progress-label"><span>Mastery</span><b className={topic.tone}>{topic.mastery}%</b></div>
-            <div className="progress-track"><i className={topic.tone} style={{ width: `${topic.mastery}%` }} /></div>
+            <div className="topic-progress-label"><span>{masteryLabel(topic.state)}</span><b className={topic.state === "mastered" ? "emerald" : topic.state === "unexplored" ? "slate" : "indigo"}>{topic.score}%</b></div>
+            <div className="progress-track"><i className={topic.state === "mastered" ? "emerald" : topic.state === "unexplored" ? "slate" : "indigo"} style={{ width: `${topic.score}%` }} /></div>
           </button>
         ))}
       </div>
@@ -56,19 +108,21 @@ function ActiveTopics({ onStart, onMap }: { onStart: () => void; onMap: () => vo
   );
 }
 
-function CognitiveDepth() {
+function CognitiveDepth({ snapshots }: { snapshots: LessonSnapshot[] }) {
+  const total = Math.max(1, snapshots.length);
+  const completionAt = (index: number) => Math.round((snapshots.filter((item) => item.progress.completed.length > index).length / total) * 100);
   const levels = [
-    { label: "Remember", value: 100, status: "complete" },
-    { label: "Understand", value: 85, status: "complete" },
-    { label: "Apply", value: 60, status: "developing" },
-    { label: "Analyze", value: 55, status: "current" },
-    { label: "Evaluate", value: 40, status: "future" },
-    { label: "Create", value: 25, status: "future" },
-  ];
+    { label: "Predict", value: completionAt(0) },
+    { label: "Mechanism", value: completionAt(1) },
+    { label: "Explain", value: completionAt(2) },
+    { label: "Implement", value: completionAt(3) },
+    { label: "Transfer", value: completionAt(4) },
+    { label: "Delayed", value: Math.round((snapshots.filter((item) => item.state === "mastered").length / total) * 100) },
+  ].map((level) => ({ ...level, status: level.value >= 80 ? "complete" : level.value > 0 ? "current" : "future" }));
   return (
     <section className="template-card depth-card" aria-labelledby="depth-title">
-      <h2 id="depth-title">Cognitive Depth</h2>
-      <p>Aggregate progress across active topics based on Bloom&apos;s Taxonomy.</p>
+      <h2 id="depth-title">Evidence Depth</h2>
+      <p>Tỷ lệ lesson đã tạo được từng loại bằng chứng — không dùng số liệu trình diễn.</p>
       <div className="bloom-chart" aria-label="Bloom taxonomy progress">
         {levels.map((level) => (
           <div className="bloom-column" key={level.label}>
@@ -81,11 +135,16 @@ function CognitiveDepth() {
   );
 }
 
-function AspectAnalysis({ onOpen }: { onOpen: () => void }) {
+function AspectAnalysis({ snapshots, onOpen }: { snapshots: LessonSnapshot[]; onOpen: () => void }) {
+  const completedActivities = snapshots.flatMap((item) => Object.values(item.progress.activityEvidence));
+  const independent = completedActivities.filter((item) => item.attempts === 1 && item.hintsUsed === 0).length;
+  const transfer = snapshots.filter((item) => item.progress.completed.length >= 5).length;
+  const mastered = snapshots.filter((item) => item.state === "mastered").length;
+  const activityTotal = Math.max(1, lessonCatalog.lessons.length * 5);
   const aspects = [
-    { label: "Conceptual Clarity", score: "14/18", width: 77, tone: "emerald" },
-    { label: "Logical Coherence", score: "9/18", width: 50, tone: "indigo" },
-    { label: "Practical Application", score: "4/18", width: 22, tone: "slate" },
+    { label: "Independent Evidence", score: `${independent}/${activityTotal}`, width: Math.round(independent / activityTotal * 100), tone: "emerald" },
+    { label: "Transfer Completed", score: `${transfer}/14`, width: Math.round(transfer / 14 * 100), tone: "indigo" },
+    { label: "Delayed Recall", score: `${mastered}/14`, width: Math.round(mastered / 14 * 100), tone: "slate" },
   ];
   return (
     <section className="template-card aspect-card" aria-labelledby="aspect-title">
@@ -127,6 +186,18 @@ function FeynmanBlock({ onStart }: { onStart: () => void }) {
   );
 }
 
+function ReviewQueue({ snapshots, onStart }: { snapshots: LessonSnapshot[]; onStart: (lessonId: string) => void }) {
+  const due = snapshots.filter((item) => item.state === "review_due");
+  const waiting = snapshots.filter((item) => item.state === "practiced");
+  const visible = [...due, ...waiting].slice(0, 3);
+  return (
+    <section className="hub-section review-queue" aria-labelledby="review-queue-title">
+      <div className="section-title-row"><div><span className="mono-label">SPACED REVIEW</span><h2 className="hub-section-title" id="review-queue-title">Delayed recall queue</h2></div><strong className={due.length ? "queue-count due" : "queue-count"}>{due.length} đến hạn</strong></div>
+      {visible.length ? <div className="review-list">{visible.map((item) => <button key={item.lessonId} onClick={() => onStart(item.lessonId)}><span className={item.state === "review_due" ? "review-state due" : "review-state"}>{item.state === "review_due" ? "ÔN NGAY" : `${hoursUntilReview(item.progress) ?? 72}H`}</span><span><strong>{item.title}</strong><small>{item.state === "review_due" ? "Bài transfer độc lập đã mở" : "Đang chờ khoảng cách trí nhớ 72 giờ"}</small></span><Icon name="arrow" /></button>)}</div> : <div className="queue-empty"><strong>Chưa có bài trong hàng đợi.</strong><p>Hoàn thành đủ 5 hoạt động của một lesson để hệ thống đặt lịch ôn sau 72 giờ.</p></div>}
+    </section>
+  );
+}
+
 function RecentDialogues({ onStart }: { onStart: () => void }) {
   return (
     <section className="hub-section recent-section" aria-labelledby="recent-title">
@@ -144,14 +215,15 @@ function RecentDialogues({ onStart }: { onStart: () => void }) {
   );
 }
 
-function HubView({ onStart, onMap, onChecklist }: { onStart: () => void; onMap: () => void; onChecklist: () => void }) {
+function HubView({ snapshots, onStart, onMap, onChecklist }: { snapshots: LessonSnapshot[]; onStart: (lessonId: string) => void; onMap: () => void; onChecklist: () => void }) {
   return (
     <div className="hub-canvas">
       <header className="template-page-header"><h1>Learning Hub</h1><p>Your current academic focus and cognitive progress overview.</p></header>
-      <ActiveTopics onStart={onStart} onMap={onMap} />
-      <div className="dashboard-grid"><CognitiveDepth /><AspectAnalysis onOpen={onChecklist} /></div>
-      <FeynmanBlock onStart={onStart} />
-      <RecentDialogues onStart={onStart} />
+      <ActiveTopics snapshots={snapshots} onStart={onStart} onMap={onMap} />
+      <div className="dashboard-grid"><CognitiveDepth snapshots={snapshots} /><AspectAnalysis snapshots={snapshots} onOpen={onChecklist} /></div>
+      <ReviewQueue snapshots={snapshots} onStart={onStart} />
+      <FeynmanBlock onStart={() => onStart("vectors")} />
+      <RecentDialogues onStart={() => onStart("vectors")} />
     </div>
   );
 }
@@ -178,24 +250,12 @@ function DotProductModel() {
   );
 }
 
-type LessonProgress = {
-  currentIndex: number;
-  completed: string[];
-  attempts: Record<string, number>;
-  hintLevels: Record<string, number>;
-};
-
-const initialLessonProgress: LessonProgress = {
-  currentIndex: 0,
-  completed: [],
-  attempts: {},
-  hintLevels: {},
-};
-
 function EvidenceSummary({ progress, total }: { progress: LessonProgress; total: number }) {
   const finished = progress.completed.length === total;
   const hintsUsed = Object.values(progress.hintLevels).reduce((sum, level) => sum + (level ?? 0), 0);
   const attempts = Object.values(progress.attempts).reduce((sum, count) => sum + (count ?? 0), 0);
+  const score = lessonEvidenceScore(progress, total);
+  const state = masteryState(progress, total);
   return (
     <section className={finished ? "evidence-summary complete" : "evidence-summary"} aria-label="Tổng kết bằng chứng">
       <span className="mono-label">EVIDENCE LEDGER</span>
@@ -203,7 +263,8 @@ function EvidenceSummary({ progress, total }: { progress: LessonProgress; total:
       <div><span>Hoạt động</span><strong>{progress.completed.length}/{total}</strong></div>
       <div><span>Lần thử</span><strong>{attempts}</strong></div>
       <div><span>Gợi ý đã dùng</span><strong>{hintsUsed}</strong></div>
-      <p>{finished ? "Trạng thái: Practiced. Mastery chỉ mở sau bài ôn trì hoãn ≥ 72 giờ." : "Hoàn thành từng bước để mở bài chuyển giao."}</p>
+      <div><span>Evidence score</span><strong>{score}%</strong></div>
+      <p>{finished ? `Trạng thái: ${masteryLabel(state)}. Mastery chỉ mở sau bài ôn độc lập ≥ 72 giờ.` : "Hoàn thành từng bước để mở bài chuyển giao."}</p>
     </section>
   );
 }
@@ -226,9 +287,12 @@ function ConceptInstrument({ lesson }: { lesson: LessonContent }) {
 
 function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => void }) {
   const lesson = getLesson(lessonId);
+  const reviewActivity = getReview(lessonId);
   const [progress, setProgress] = useState<LessonProgress>(initialLessonProgress);
   const [restored, setRestored] = useState(false);
   const [choice, setChoice] = useState<number | null>(null);
+  const [reviewChoice, setReviewChoice] = useState<number | null>(null);
+  const [reviewFeedback, setReviewFeedback] = useState<string | null>(null);
   const [response, setResponse] = useState("");
   const firstCode = lesson.activities.find((activity) => activity.input.kind === "code");
   const [code, setCode] = useState(firstCode?.input.kind === "code" ? firstCode.input.starter : "");
@@ -238,19 +302,22 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
   const stageComplete = progress.completed.includes(stage.id);
   const lessonComplete = progress.completed.length === lesson.activities.length;
   const hintLevel = progress.hintLevels[stage.id] ?? 0;
-  const storageKey = `briliantai.lesson.${lesson.id}.progress.v2`;
+  const currentMastery = masteryState(progress, lesson.activities.length);
+  const reviewHours = hoursUntilReview(progress);
+  const storageKey = `briliantai.lesson.${lesson.id}.progress.v3`;
+  const legacyStorageKey = `briliantai.lesson.${lesson.id}.progress.v2`;
 
   useEffect(() => {
     queueMicrotask(() => {
       try {
-        const saved = window.localStorage.getItem(storageKey);
-        if (saved) setProgress({ ...initialLessonProgress, ...JSON.parse(saved) });
+        const saved = window.localStorage.getItem(storageKey) ?? window.localStorage.getItem(legacyStorageKey);
+        if (saved) setProgress(normalizeProgress(JSON.parse(saved), lesson.activities.length));
       } catch {
         // Progress remains available for the current session when storage is unavailable.
       }
       setRestored(true);
     });
-  }, [storageKey]);
+  }, [legacyStorageKey, lesson.activities.length, storageKey]);
 
   useEffect(() => {
     if (!restored) return;
@@ -259,13 +326,47 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
 
   const recordAttempt = (correct: boolean, message: string) => {
     setProgress((current) => ({
-      ...current,
-      attempts: { ...current.attempts, [stage.id]: (current.attempts[stage.id] ?? 0) + 1 },
-      completed: correct && !current.completed.includes(stage.id)
-        ? [...current.completed, stage.id]
-        : current.completed,
+      ...(() => {
+        const attempts = (current.attempts[stage.id] ?? 0) + 1;
+        const isNewEvidence = correct && !current.completed.includes(stage.id);
+        const completed = isNewEvidence ? [...current.completed, stage.id] : current.completed;
+        const completedAt = new Date().toISOString();
+        const justPracticed = completed.length === lesson.activities.length && !current.practicedAt;
+        const practicedAt = justPracticed ? completedAt : current.practicedAt;
+        return {
+          ...current,
+          attempts: { ...current.attempts, [stage.id]: attempts },
+          completed,
+          activityEvidence: isNewEvidence ? {
+            ...current.activityEvidence,
+            [stage.id]: { completedAt, attempts, hintsUsed: current.hintLevels[stage.id] ?? 0 },
+          } : current.activityEvidence,
+          practicedAt,
+          review: justPracticed && practicedAt ? {
+            dueAt: reviewDueAt(practicedAt),
+            completedAt: null,
+            attempts: 0,
+            correct: false,
+          } : current.review,
+        };
+      })(),
     }));
     setFeedback({ correct, message });
+  };
+
+  const checkReview = () => {
+    if (reviewChoice === null) return;
+    const correct = reviewChoice === reviewActivity.correctIndex;
+    setProgress((current) => ({
+      ...current,
+      review: {
+        dueAt: current.review?.dueAt ?? reviewDueAt(current.practicedAt ?? new Date().toISOString()),
+        attempts: (current.review?.attempts ?? 0) + 1,
+        completedAt: correct ? new Date().toISOString() : current.review?.completedAt ?? null,
+        correct: correct || current.review?.correct === true,
+      },
+    }));
+    setReviewFeedback(correct ? reviewActivity.explanation : "Chưa đúng. Hãy suy luận lại từ cơ chế thay vì nhớ câu trả lời cũ.");
   };
 
   const checkAnswer = () => {
@@ -303,6 +404,8 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
     const nextActivity = lesson.activities[nextIndex];
     setProgress((current) => ({ ...current, currentIndex: nextIndex }));
     setChoice(null);
+    setReviewChoice(null);
+    setReviewFeedback(null);
     setResponse("");
     setCode(nextActivity.input.kind === "code" ? nextActivity.input.starter : "");
     setFeedback(null);
@@ -311,6 +414,8 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
   const resetLesson = () => {
     setProgress(initialLessonProgress);
     setChoice(null);
+    setReviewChoice(null);
+    setReviewFeedback(null);
     setResponse("");
     setCode(firstCode?.input.kind === "code" ? firstCode.input.starter : "");
     setFeedback(null);
@@ -324,21 +429,32 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
 
   return (
     <div className="lab-screen">
-      <header className="lab-topbar"><button className="back-link" onClick={onClose}>← Learning Hub</button><div><span>Lesson runtime:</span><strong>{lessonComplete ? "Practiced" : stage.label}</strong></div><span className="lab-count">{progress.completed.length} / {lesson.activities.length}</span></header>
+      <header className="lab-topbar"><button className="back-link" onClick={onClose}>← Learning Hub</button><div><span>Lesson runtime:</span><strong>{lessonComplete ? masteryLabel(currentMastery) : stage.label}</strong></div><span className="lab-count">{lessonEvidenceScore(progress, lesson.activities.length)}%</span></header>
       <div className="lab-columns">
         <section className="inquiry-column">
-          <header className="column-header"><div><h1>{lesson.title}</h1><p>{lesson.level} · Từ dữ liệu thô đến mô hình biết học</p></div><span>{lessonComplete ? "PRACTICED" : `STEP ${progress.currentIndex + 1}`}</span></header>
+          <header className="column-header"><div><h1>{lesson.title}</h1><p>{lesson.level} · Từ dữ liệu thô đến mô hình biết học</p></div><span>{lessonComplete ? masteryLabel(currentMastery).toUpperCase() : `STEP ${progress.currentIndex + 1}`}</span></header>
           <div className="conversation">
             <nav className="lesson-stepper" aria-label="Tiến độ bài học">
               {lesson.activities.map((item, index) => <button key={item.id} className={progress.completed.includes(item.id) ? "complete" : index === progress.currentIndex ? "active" : ""} disabled={index > progress.completed.length} onClick={() => { setProgress((current) => ({ ...current, currentIndex: index })); setFeedback(null); setChoice(null); setResponse(""); setCode(item.input.kind === "code" ? item.input.starter : ""); }}><span>{progress.completed.includes(item.id) ? "✓" : index + 1}</span><small>{item.label}</small></button>)}
             </nav>
 
-            {lessonComplete && stageComplete ? (
+            {lessonComplete && stageComplete && currentMastery === "review_due" ? (
+              <section className="delayed-review">
+                <span className="mono-label indigo-text">DELAYED TRANSFER · ≥72 HOURS</span>
+                <h2>{reviewActivity.prompt}</h2>
+                <p>Không dùng hint. Một đáp án đúng sẽ mở trạng thái Mastered cho lesson này.</p>
+                <div className="review-options">
+                  {reviewActivity.options.map((option, index) => <button key={option} className={reviewChoice === index ? "answer-option selected" : "answer-option"} onClick={() => { setReviewChoice(index); setReviewFeedback(null); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>)}
+                </div>
+                {reviewFeedback ? <div className={reviewChoice === reviewActivity.correctIndex ? "runtime-feedback correct" : "runtime-feedback retry"} role="status"><strong>{reviewChoice === reviewActivity.correctIndex ? "Recall độc lập đạt" : "Chưa mở mastery"}</strong><p>{reviewFeedback}</p></div> : null}
+                <button className="primary-action" disabled={reviewChoice === null || currentMastery === "mastered"} onClick={checkReview}>Chấm bài ôn</button>
+              </section>
+            ) : lessonComplete && stageComplete ? (
               <section className="lesson-finish">
-                <span className="finish-mark">✓</span>
-                <p className="mono-label">SESSION COMPLETE</p>
-                <h2>Ông đã xây được một mental model có thể dùng.</h2>
-                <p>{lesson.title} đã đi qua đủ chuỗi dự đoán, cơ chế, giải thích, code và chuyển giao sang tình huống mới.</p>
+                <span className="finish-mark">{currentMastery === "mastered" ? "◆" : "✓"}</span>
+                <p className="mono-label">{currentMastery === "mastered" ? "MASTERY VERIFIED" : "SESSION COMPLETE"}</p>
+                <h2>{currentMastery === "mastered" ? "Mental model đã vượt qua delayed recall." : "Ông đã xây được một mental model có thể dùng."}</h2>
+                <p>{currentMastery === "mastered" ? reviewActivity.explanation : `${lesson.title} đã đủ practice evidence. Bài ôn độc lập sẽ mở sau ${reviewHours ?? 72} giờ.`}</p>
                 <button className="outline-action" onClick={resetLesson}>Làm lại không gợi ý</button>
               </section>
             ) : (
@@ -391,9 +507,10 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
   );
 }
 
-function ArchitectView({ onStart }: { onStart: (lessonId: string) => void }) {
+function ArchitectView({ snapshots, onStart }: { snapshots: LessonSnapshot[]; onStart: (lessonId: string) => void }) {
   const [selectedId, setSelectedId] = useState("vectors");
   const selected = curriculum.find((item) => item.id === selectedId) ?? curriculum[0];
+  const selectedSnapshot = snapshots.find((item) => item.lessonId === selectedId);
   const groups = [
     { name: "Nature & Origin", lessons: curriculum.slice(0, 5) },
     { name: "Use & Test", lessons: curriculum.slice(5, 10) },
@@ -404,10 +521,10 @@ function ArchitectView({ onStart }: { onStart: (lessonId: string) => void }) {
       <header className="map-header"><div><p className="breadcrumb">Hub <span>›</span> AI Foundations <span>›</span> Map</p><h1>AI Foundations</h1><p>A structured matrix of 14 concepts. Select a node to review evidence and deepen mastery.</p></div><div className="map-legend"><span><i className="mastered" />Mastered</span><span><i className="active" />In progress</span><span><i />Unexplored</span></div></header>
       <div className="map-workspace">
         <div className="map-groups">
-          {groups.map((group) => <section className="map-group" key={group.name}><h2>{group.name}</h2><div className="node-grid">{group.lessons.map((lesson) => <button key={lesson.id} className={`concept-node ${lesson.status} ${selectedId === lesson.id ? "selected" : ""}`} onClick={() => setSelectedId(lesson.id)}><span>LEVEL {String(curriculum.indexOf(lesson) + 1).padStart(2, "0")}</span><i /><h3>{lesson.title}</h3><p>{lesson.outcome}</p><small>{lesson.statusLabel}</small></button>)}</div></section>)}
+          {groups.map((group) => <section className="map-group" key={group.name}><h2>{group.name}</h2><div className="node-grid">{group.lessons.map((lesson) => { const evidence = snapshots.find((item) => item.lessonId === lesson.id); const nodeStatus = evidence?.state === "mastered" ? "mastered" : evidence?.state === "unexplored" || !evidence ? "unexplored" : "active"; return <button key={lesson.id} className={`concept-node ${nodeStatus} ${selectedId === lesson.id ? "selected" : ""}`} onClick={() => setSelectedId(lesson.id)}><span>LEVEL {String(curriculum.indexOf(lesson) + 1).padStart(2, "0")}</span><i /><h3>{lesson.title}</h3><p>{lesson.outcome}</p><small>{evidence ? `${masteryLabel(evidence.state)} · ${evidence.score}%` : "Chưa học · 0%"}</small></button>; })}</div></section>)}
         </div>
         <aside className="deep-dive">
-          <header><h2>Deep Dive</h2><span>{selected.statusLabel}</span></header>
+          <header><h2>Deep Dive</h2><span>{selectedSnapshot ? `${masteryLabel(selectedSnapshot.state)} · ${selectedSnapshot.score}%` : "Chưa học"}</span></header>
           <div className="deep-dive-body"><span className="mono-label indigo-text">CONCEPT · {selected.id.toUpperCase()}</span><h3>{selected.title}</h3><p>{selected.outcome}</p><div className="transfer-test"><strong>TRANSFER TEST</strong><p>{selected.transfer}</p></div><div className="socratic-prompt"><span>✦</span><p>Ông có thể giải thích khi nào quy tắc này thất bại thay vì chỉ nêu định nghĩa?</p></div></div>
           <button className="deep-dive-action" onClick={() => onStart(selected.id)}><Icon name="brain" /> Enter Socratic Lab for this node</button>
         </aside>
@@ -416,17 +533,23 @@ function ArchitectView({ onStart }: { onStart: (lessonId: string) => void }) {
   );
 }
 
-function ChecklistView({ onStart, onMap }: { onStart: () => void; onMap: () => void }) {
+function ChecklistView({ snapshots, onStart, onMap }: { snapshots: LessonSnapshot[]; onStart: () => void; onMap: () => void }) {
+  const vector = snapshots.find((item) => item.lessonId === "vectors");
+  const completed = vector?.progress.completed.length ?? 0;
+  const evidenceStatus = (minimum: number) => completed >= minimum ? "mastered" : completed > 0 ? "developing" : "unexplored";
+  const masteredCount = snapshots.filter((item) => item.state === "mastered").length;
+  const developingCount = snapshots.filter((item) => !["mastered", "unexplored"].includes(item.state)).length;
+  const unexploredCount = 14 - masteredCount - developingCount;
   const aspects = [
-    { group: "1. Nature & Origin", title: "Problem & Context", question: "Nó đang giải quyết vấn đề gì và xuất phát từ đâu?", status: "mastered", note: "Phiên Socratic đã xác định rõ bối cảnh và problem domain." },
-    { group: "1. Nature & Origin", title: "Mechanism", question: "Nó hoạt động ở cấp độ cấu trúc như thế nào?", status: "mastered", note: "Ông đã nối công thức với từng feature contribution." },
-    { group: "2. Scope & Boundaries", title: "Boundary & Edge-cases", question: "Khái niệm này vỡ ở đâu?", status: "developing", note: "Đã thấy ranh giới cốt lõi nhưng chưa kiểm tra extreme edge cases." },
-    { group: "3. Impact", title: "Tradeoffs & Consequences", question: "Chi phí của việc áp dụng khái niệm này là gì?", status: "unexplored", note: "Chưa có bằng chứng." },
+    { group: "1. Nature & Origin", title: "Prediction & Context", question: "Ông dự đoán được kết quả trước khi xem giải thích chưa?", status: evidenceStatus(1), note: completed >= 1 ? "Có prediction evidence từ lesson Vector." : "Chưa có bằng chứng." },
+    { group: "1. Nature & Origin", title: "Mechanism", question: "Ông có nối được công thức với từng contribution không?", status: evidenceStatus(2), note: completed >= 2 ? "Đã có mechanism evidence." : "Cần hoàn thành hoạt động cơ chế." },
+    { group: "2. Scope & Boundaries", title: "Explain & Boundary", question: "Ông giải thích được cơ chế và điểm dễ hiểu sai chưa?", status: evidenceStatus(3), note: completed >= 3 ? "Đã có Feynman evidence." : "Cần giải thích bằng ngôn ngữ của mình." },
+    { group: "3. Impact", title: "Implementation & Transfer", question: "Ông có chuyển cơ chế sang code và tình huống mới chưa?", status: evidenceStatus(5), note: completed >= 5 ? "Đã hoàn tất code và transfer evidence." : "Chưa đủ bằng chứng chuyển giao." },
   ];
   return (
     <div className="checklist-canvas">
       <header className="checklist-header"><p className="breadcrumb">Learning Hub <span>›</span> Checklist Deep-Dive</p><h1>My Learning Journey: Aspect Mastery</h1><p>A comprehensive view of cognitive progress. Focus Socratic sessions on Developing and Unexplored aspects to achieve true mastery.</p></header>
-      <section className="mastery-summary"><article className="mastered"><span>MASTERED</span><p><strong>8</strong>/18</p><div><i /></div></article><article className="developing"><span>DEVELOPING</span><p><strong>6</strong>/18</p><div><i /></div></article><article><span>UNEXPLORED</span><p><strong>4</strong>/18</p><div><i /></div></article></section>
+      <section className="mastery-summary"><article className="mastered"><span>MASTERED</span><p><strong>{masteredCount}</strong>/14</p><div><i /></div></article><article className="developing"><span>DEVELOPING</span><p><strong>{developingCount}</strong>/14</p><div><i /></div></article><article><span>UNEXPLORED</span><p><strong>{unexploredCount}</strong>/14</p><div><i /></div></article></section>
       <section className="aspect-breakdown"><div className="section-title-row"><h2>Aspects Breakdown</h2><button className="text-link" onClick={onMap}>View Network Explorer ↗</button></div><div className="breakdown-list">{aspects.map((aspect, index) => <article className={`breakdown-item ${aspect.status}`} key={`${aspect.title}-${index}`}><span className="aspect-group">{index === 0 || aspects[index - 1].group !== aspect.group ? aspect.group : ""}</span><div className="aspect-detail"><div><h3>{aspect.title}</h3><span>{aspect.status}</span></div><p>{aspect.question}</p><aside><Icon name="brain" /><p>{aspect.note}</p></aside></div></article>)}</div></section>
       <footer className="checklist-actions"><button className="primary-action" onClick={onStart}>✦ Resume Socratic Session</button><button className="outline-action" onClick={onMap}>View Knowledge Map</button></footer>
     </div>
@@ -456,18 +579,21 @@ export function LearningDashboard() {
   const [view, setView] = useState<View>("hub");
   const [labOpen, setLabOpen] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState("vectors");
-  const openView = (next: View) => { setView(next); setLabOpen(false); };
+  const [masteryRevision, setMasteryRevision] = useState(0);
+  const snapshots = useMasterySnapshot(masteryRevision);
+  const openView = (next: View) => { setView(next); setLabOpen(false); setMasteryRevision((value) => value + 1); };
   const openLesson = (lessonId = "vectors") => { setActiveLessonId(lessonId); setLabOpen(true); };
+  const closeLesson = () => { setLabOpen(false); setMasteryRevision((value) => value + 1); };
 
   return (
     <main className="app-shell" id="page-top">
       <Sidebar view={view} labOpen={labOpen} onView={openView} onLab={() => openLesson(activeLessonId)} />
       <MobileNav view={view} labOpen={labOpen} onView={openView} onLab={() => openLesson(activeLessonId)} />
       <div className={labOpen ? "content-area lab-area" : "content-area"}>
-        {labOpen ? <SocraticLab key={activeLessonId} lessonId={activeLessonId} onClose={() => setLabOpen(false)} /> : null}
-        {!labOpen && view === "hub" ? <HubView onStart={() => openLesson("vectors")} onMap={() => openView("architect")} onChecklist={() => openView("checklist")} /> : null}
-        {!labOpen && view === "architect" ? <ArchitectView onStart={openLesson} /> : null}
-        {!labOpen && view === "checklist" ? <ChecklistView onStart={() => openLesson("vectors")} onMap={() => openView("architect")} /> : null}
+        {labOpen ? <SocraticLab key={activeLessonId} lessonId={activeLessonId} onClose={closeLesson} /> : null}
+        {!labOpen && view === "hub" ? <HubView snapshots={snapshots} onStart={openLesson} onMap={() => openView("architect")} onChecklist={() => openView("checklist")} /> : null}
+        {!labOpen && view === "architect" ? <ArchitectView snapshots={snapshots} onStart={openLesson} /> : null}
+        {!labOpen && view === "checklist" ? <ChecklistView snapshots={snapshots} onStart={() => openLesson("vectors")} onMap={() => openView("architect")} /> : null}
       </div>
     </main>
   );
