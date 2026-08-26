@@ -24,4 +24,11 @@ test("the interface follows the structured academic template", async () => {
   assert.match(dashboard, /Dự đoán trước/);
   assert.match(dashboard, /Socratic Lab/);
   assert.match(dashboard, /Aspects Breakdown/);
+  assert.match(dashboard, /PREDICT BEFORE INSTRUCTION/);
+  assert.match(dashboard, /FEYNMAN CHECK/);
+  assert.match(dashboard, /IMPLEMENT THE MECHANISM/);
+  assert.match(dashboard, /NOVEL CONTEXT/);
+  assert.match(dashboard, /localStorage\.setItem/);
+  assert.match(dashboard, /Mastery chỉ mở sau bài ôn trì hoãn ≥ 72 giờ/);
+  assert.match(dashboard, /Hidden checks/);
 });
