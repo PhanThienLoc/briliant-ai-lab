@@ -1,0 +1,72 @@
+{
+  "problem-frame": { "tests": [
+    { "name": "đủ ba trường bắt buộc", "expression": "valid_brief({'target': 'churn', 'metric': 'recall', 'decision': 'call'})", "expected": true },
+    { "name": "phát hiện thiếu decision", "expression": "valid_brief({'target': 'churn', 'metric': 'recall'})", "expected": false },
+    { "name": "không chấp nhận brief rỗng", "expression": "valid_brief({})", "expected": false }
+  ]},
+  "data-feature-label": { "tests": [
+    { "name": "loại đúng label", "expression": "feature_columns(['age', 'income', 'churn'], 'churn')", "expected": ["age", "income"] },
+    { "name": "giữ nguyên thứ tự feature", "expression": "feature_columns(['label', 'b', 'a'], 'label')", "expected": ["b", "a"] },
+    { "name": "không xóa cột khác", "expression": "feature_columns(['x', 'y'], 'target')", "expected": ["x", "y"] }
+  ]},
+  "data-quality": { "tests": [
+    { "name": "tuổi hợp lệ", "expression": "valid_age(35)", "expected": true },
+    { "name": "chặn null", "expression": "valid_age(None)", "expected": false },
+    { "name": "chặn ngoài miền", "expression": "[valid_age(-1), valid_age(121)]", "expected": [false, false] }
+  ]},
+  "functions": { "tests": [
+    { "name": "đúng thứ tự composition", "setup": "normalize = lambda x: x / 10\nmodel = lambda x: x + 3", "expression": "pipeline(20, normalize, model)", "expected": 5 },
+    { "name": "truyền output sang bước kế", "setup": "normalize = lambda x: x - 1\nmodel = lambda x: x * x", "expression": "pipeline(4, normalize, model)", "expected": 9 },
+    { "name": "hoạt động với số âm", "setup": "normalize = lambda x: -x\nmodel = lambda x: x + 1", "expression": "pipeline(-2, normalize, model)", "expected": 3 }
+  ]},
+  "vectors": { "tests": [
+    { "name": "vector chuẩn", "expression": "dot_product([2, -1, 3], [0.5, 2, 1])", "expected": 2 },
+    { "name": "cancellation", "expression": "dot_product([1, 1], [4, -4])", "expected": 0 },
+    { "name": "vector rỗng", "expression": "dot_product([], [])", "expected": 0 }
+  ]},
+  "linear-model": { "tests": [
+    { "name": "prediction có bias", "expression": "linear_predict([2, 3], [4, -1], 2)", "expected": 7 },
+    { "name": "zero weights", "expression": "linear_predict([9, -3], [0, 0], -2)", "expected": -2 },
+    { "name": "feature âm", "expression": "linear_predict([-2], [3], 1)", "expected": -5 }
+  ]},
+  "residual": { "tests": [
+    { "name": "đúng dấu y trừ prediction", "expression": "residuals([5, 2], [3, 4])", "expected": [2, -2] },
+    { "name": "perfect prediction", "expression": "residuals([1, 2], [1, 2])", "expected": [0, 0] },
+    { "name": "giá trị thập phân", "expression": "residuals([1.5], [0.25])", "expected": [1.25] }
+  ]},
+  "mse": { "tests": [
+    { "name": "sai số hỗn hợp", "expression": "mse([1, 3], [2, 1])", "expected": 2.5 },
+    { "name": "prediction hoàn hảo", "expression": "mse([1, 2, 3], [1, 2, 3])", "expected": 0 },
+    { "name": "residual âm vẫn bình phương", "expression": "mse([0], [3])", "expected": 9 }
+  ]},
+  "derivative": { "tests": [
+    { "name": "đạo hàm hàm bậc hai", "setup": "f = lambda value: value ** 2", "expression": "derivative(f, 3)", "expected": 6, "tolerance": 0.001 },
+    { "name": "đạo hàm hàm tuyến tính", "setup": "f = lambda value: 5 * value - 2", "expression": "derivative(f, -4)", "expected": 5, "tolerance": 0.001 },
+    { "name": "đạo hàm hằng số", "setup": "f = lambda value: 7", "expression": "derivative(f, 9)", "expected": 0, "tolerance": 0.001 }
+  ]},
+  "gradient": { "tests": [
+    { "name": "update đúng dấu", "expression": "update([3, 2], [1, -2], 0.5)", "expected": [2.5, 3] },
+    { "name": "zero gradient", "expression": "update([1, -1], [0, 0], 0.1)", "expected": [1, -1] },
+    { "name": "learning rate nhỏ", "expression": "update([1], [2], 0.01)", "expected": [0.98] }
+  ]},
+  "learning-rate": { "tests": [
+    { "name": "scalar descent", "expression": "step(3, 2, 0.1)", "expected": 2.8 },
+    { "name": "negative gradient", "expression": "step(1, -4, 0.25)", "expected": 2 },
+    { "name": "zero learning rate", "expression": "step(5, 99, 0)", "expected": 5 }
+  ]},
+  "from-scratch": { "tests": [
+    { "name": "một bước giảm lỗi", "expression": "train_step(0, 0, 2, 4, 0.1)", "expected": [1.6, 0.8, 16] },
+    { "name": "prediction hoàn hảo không update", "expression": "train_step(2, 0, 3, 6, 0.1)", "expected": [2, 0, 0] },
+    { "name": "gradient đúng chiều", "expression": "train_step(1, 0, 1, 0, 0.5)", "expected": [0, -1, 1] }
+  ]},
+  "validation": { "tests": [
+    { "name": "fit chỉ nhận train", "setup": "calls = []\nfit = lambda X, y: calls.append(['fit', X, y])\nscore = lambda X, y: len(X) + len(y)", "expression": "[validation_score(fit, score, [1, 2], [0, 1], [9], [1]), calls]", "expected": [2, [["fit", [1, 2], [0, 1]]]] },
+    { "name": "score chỉ nhận validation", "setup": "calls = []\nfit = lambda X, y: None\nscore = lambda X, y: calls.append(['score', X, y]) or 0.75", "expression": "[validation_score(fit, score, [1], [0], [8, 9], [1, 1]), calls]", "expected": [0.75, [["score", [8, 9], [1, 1]]]] },
+    { "name": "trả về metric", "setup": "fit = lambda X, y: None\nscore = lambda X, y: 0.42", "expression": "validation_score(fit, score, [], [], [], [])", "expected": 0.42 }
+  ]},
+  "capstone": { "tests": [
+    { "name": "đúng thứ tự pipeline", "setup": "log = []\nsplit = lambda data: (['train'], ['val'])\nfit_preprocessor = lambda train: log.append(['fit_preprocessor', train])\ntransform = lambda rows: [value + '_x' for value in rows]\nfit_model = lambda train: log.append(['fit_model', train])\nscore = lambda val: log.append(['score', val]) or 0.8", "expression": "[run_pipeline(['raw'], split, fit_preprocessor, transform, fit_model, score), log]", "expected": [0.8, [["fit_preprocessor", ["train"]], ["fit_model", ["train_x"]], ["score", ["val_x"]]]] },
+    { "name": "transform cả train và validation", "setup": "seen = []\nsplit = lambda data: ([1, 2], [3])\nfit_preprocessor = lambda train: None\ntransform = lambda rows: seen.append(list(rows)) or list(rows)\nfit_model = lambda train: None\nscore = lambda val: 1", "expression": "[run_pipeline([], split, fit_preprocessor, transform, fit_model, score), seen]", "expected": [1, [[1, 2], [3]]] },
+    { "name": "trả về evaluation score", "setup": "split = lambda data: ([], [])\nfit_preprocessor = lambda train: None\ntransform = lambda rows: rows\nfit_model = lambda train: None\nscore = lambda val: 0.33", "expression": "run_pipeline([], split, fit_preprocessor, transform, fit_model, score)", "expected": 0.33 }
+  ]}
+}

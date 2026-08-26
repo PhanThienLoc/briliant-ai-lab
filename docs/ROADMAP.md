@@ -5,11 +5,12 @@ Kế hoạch triển khai bám theo nguyên tắc: chứng minh vòng lặp họ
 ## Trạng thái hiện tại
 
 - Tuần 1 — hoàn thành: PRD, kiến trúc, lesson schema và CI.
-- Tuần 2 — hoàn thành MVP: runtime data-driven hỗ trợ choice, number, explanation và structural code checks; có hint ladder và evidence ledger.
+- Tuần 2 — hoàn thành MVP: runtime data-driven hỗ trợ choice, number, explanation và Python thực thi thật; có hint ladder và evidence ledger.
+- Tuần 4 — hoàn thành MVP: 14 Python Code Lab chạy trong Web Worker dùng một lần, chấm bằng 42 hidden tests, timeout 2,5 giây và chặn import/file/network.
 - Tuần 3 — hoàn thành bản nội dung đầu: đủ 14 lesson, mỗi lesson có 5 hoạt động, mental model, transfer test và nguồn. Nội dung vẫn cần authoring QA trước pilot.
 - Tuần 5 — hoàn thành MVP: mastery engine dùng evidence thật, migration tiến độ cũ, hint/retry penalty và 14 delayed-transfer review sau ≥72 giờ.
 - Tuần 6 — hoàn thành MVP: review scheduler đưa bài chờ/đến hạn lên Learning Hub và chỉ mở Mastered sau delayed recall đúng.
-- Milestone kế tiếp: code lab thực thi Python an toàn với test ẩn và giới hạn tài nguyên.
+- Milestone kế tiếp: authoring QA cho 14 lesson, pilot nhỏ và đo tỷ lệ lỗi/timeout của Python runtime.
 
 ## Release 0 — MVP tám tuần
 

@@ -69,3 +69,17 @@ test("every lesson has a distinct delayed-review transfer check", async () => {
     assert.ok(review.explanation.length > 30);
   }
 });
+
+test("every Python activity is graded by three named hidden tests", async () => {
+  const catalog = JSON.parse(await readFile(new URL("../content/courses/raw-data-to-learning-model/catalog.json", import.meta.url), "utf8"));
+  const labs = JSON.parse(await readFile(new URL("../content/courses/raw-data-to-learning-model/python-labs.json", import.meta.url), "utf8"));
+
+  assert.deepEqual(Object.keys(labs).sort(), catalog.lessons.map((lesson) => lesson.id).sort());
+  for (const lesson of catalog.lessons) {
+    const lab = labs[lesson.id];
+    const codeActivity = lesson.activities.find((activity) => activity.input.kind === "code");
+    assert.ok(codeActivity, `${lesson.id} needs a Python activity`);
+    assert.equal(lab.tests.length, 3, `${lesson.id} needs three hidden tests`);
+    assert.ok(lab.tests.every((hiddenTest) => hiddenTest.name && hiddenTest.expression && Object.hasOwn(hiddenTest, "expected")));
+  }
+});

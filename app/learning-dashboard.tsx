@@ -2,7 +2,8 @@
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { curriculum, todayQueue } from "../lib/curriculum";
-import { getLesson, getReview, lessonCatalog, type LessonContent } from "../lib/lesson-catalog";
+import { getLesson, getPythonLab, getReview, lessonCatalog, type LessonContent } from "../lib/lesson-catalog";
+import { runPythonLab, type PythonRunResult, type RunnerPhase } from "../lib/python-runner";
 import {
   hoursUntilReview,
   initialLessonProgress,
@@ -288,6 +289,7 @@ function ConceptInstrument({ lesson }: { lesson: LessonContent }) {
 function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => void }) {
   const lesson = getLesson(lessonId);
   const reviewActivity = getReview(lessonId);
+  const pythonLab = getPythonLab(lessonId);
   const [progress, setProgress] = useState<LessonProgress>(initialLessonProgress);
   const [restored, setRestored] = useState(false);
   const [choice, setChoice] = useState<number | null>(null);
@@ -297,6 +299,8 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
   const firstCode = lesson.activities.find((activity) => activity.input.kind === "code");
   const [code, setCode] = useState(firstCode?.input.kind === "code" ? firstCode.input.starter : "");
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null);
+  const [pythonRun, setPythonRun] = useState<PythonRunResult | null>(null);
+  const [runnerPhase, setRunnerPhase] = useState<RunnerPhase | null>(null);
 
   const stage = lesson.activities[Math.min(progress.currentIndex, lesson.activities.length - 1)];
   const stageComplete = progress.completed.includes(stage.id);
@@ -369,7 +373,7 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
     setReviewFeedback(correct ? reviewActivity.explanation : "Chưa đúng. Hãy suy luận lại từ cơ chế thay vì nhớ câu trả lời cũ.");
   };
 
-  const checkAnswer = () => {
+  const checkAnswer = async () => {
     if (stage.input.kind === "choice") {
       const correct = choice === stage.input.correctIndex;
       recordAttempt(correct, correct ? stage.success : stage.retry);
@@ -388,8 +392,15 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
       recordAttempt(correct, correct ? stage.success : stage.retry);
       return;
     }
-    const correct = stage.input.requiredTokens.every((token) => code.includes(token));
-    recordAttempt(correct, correct ? stage.success : stage.retry);
+    setPythonRun(null);
+    setRunnerPhase("booting");
+    const result = await runPythonLab(code, pythonLab, setRunnerPhase);
+    setRunnerPhase(null);
+    setPythonRun(result);
+    const message = result.passed
+      ? `${stage.success} ${result.tests.length}/${result.tests.length} hidden tests passed.`
+      : result.error ?? `${stage.retry} ${result.tests.filter((test) => test.passed).length}/${result.tests.length} hidden tests passed.`;
+    recordAttempt(result.passed, message);
   };
 
   const useHint = () => {
@@ -409,6 +420,8 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
     setResponse("");
     setCode(nextActivity.input.kind === "code" ? nextActivity.input.starter : "");
     setFeedback(null);
+    setPythonRun(null);
+    setRunnerPhase(null);
   };
 
   const resetLesson = () => {
@@ -419,6 +432,8 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
     setResponse("");
     setCode(firstCode?.input.kind === "code" ? firstCode.input.starter : "");
     setFeedback(null);
+    setPythonRun(null);
+    setRunnerPhase(null);
   };
 
   const canCheck = stage.input.kind === "choice"
@@ -473,7 +488,7 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
 
                 {stage.input.kind === "number" ? <label className="response-field"><span>Kết quả tính toán</span><input inputMode="decimal" value={response} onChange={(event) => { setResponse(event.target.value); setFeedback(null); }} placeholder="Nhập một số" /></label> : null}
                 {stage.input.kind === "text" ? <label className="response-field"><span>Giải thích bằng lời của ông</span><textarea rows={7} value={response} onChange={(event) => { setResponse(event.target.value); setFeedback(null); }} placeholder="Viết mental model bằng ngôn ngữ của ông..." /><small>{response.trim().length}/{stage.input.minLength} ký tự tối thiểu</small></label> : null}
-                {stage.input.kind === "code" ? <label className="response-field code-field"><span>Python editor · structural checks</span><textarea rows={8} spellCheck={false} value={code} onChange={(event) => { setCode(event.target.value); setFeedback(null); }} /></label> : null}
+                {stage.input.kind === "code" ? <div className="python-lab"><label className="response-field code-field"><span>Python 3.14 · isolated WebAssembly sandbox</span><textarea rows={10} spellCheck={false} value={code} onChange={(event) => { setCode(event.target.value); setFeedback(null); setPythonRun(null); }} /></label><div className="sandbox-contract"><span>TIME LIMIT 2.5S</span><span>NO IMPORTS</span><span>NO FILES / NETWORK</span><span>MAX 5K CHARS</span></div>{runnerPhase ? <div className="runner-status" role="status"><i />{runnerPhase === "booting" ? "Đang khởi tạo Python runtime…" : "Đang chạy code và hidden tests…"}</div> : null}{pythonRun ? <div className={pythonRun.passed ? "test-report passed" : "test-report failed"}><header><strong>{pythonRun.passed ? "All hidden tests passed" : "Hidden tests chưa đạt"}</strong><span>{pythonRun.tests.filter((test) => test.passed).length}/{pythonRun.tests.length}</span></header>{pythonRun.error ? <p className="runtime-error">{pythonRun.error}</p> : null}<ul>{pythonRun.tests.map((test) => <li className={test.passed ? "passed" : "failed"} key={test.name}><span>{test.passed ? "✓" : "×"}</span>{test.name}</li>)}</ul>{pythonRun.output ? <pre aria-label="Python output">{pythonRun.output}</pre> : null}</div> : null}</div> : null}
 
                 <div className="hint-ladder">
                   <div><span>Hint ladder</span><small>{hintLevel}/2 · dùng hint sẽ được ghi vào evidence</small></div>
@@ -484,7 +499,7 @@ function SocraticLab({ lessonId, onClose }: { lessonId: string; onClose: () => v
                 {feedback ? <div className={feedback.correct ? "runtime-feedback correct" : "runtime-feedback retry"} role="status"><strong>{feedback.correct ? "Bằng chứng hợp lệ" : "Chưa đạt rubric"}</strong><p>{feedback.message}</p></div> : null}
 
                 <div className="activity-actions">
-                  <button className="primary-action" onClick={stageComplete ? nextStage : checkAnswer} disabled={!stageComplete && !canCheck}>{stageComplete ? (progress.currentIndex === lesson.activities.length - 1 ? "Hoàn tất phiên học" : "Hoạt động tiếp theo →") : "Kiểm tra câu trả lời"}</button>
+                  <button className="primary-action" onClick={stageComplete ? nextStage : checkAnswer} disabled={runnerPhase !== null || (!stageComplete && !canCheck)}>{stageComplete ? (progress.currentIndex === lesson.activities.length - 1 ? "Hoàn tất phiên học" : "Hoạt động tiếp theo →") : runnerPhase ? "Python đang chạy…" : stage.input.kind === "code" ? "Run hidden tests" : "Kiểm tra câu trả lời"}</button>
                   <span>{progress.attempts[stage.id] ?? 0} lần thử</span>
                 </div>
               </>

@@ -256,6 +256,26 @@ code { padding: 1px 4px; color: var(--tertiary-container); background: var(--sur
 .response-field small { justify-self: end; color: var(--outline); font-size: 9px; }
 .code-field textarea { color: #dfe6f0; border-color: var(--primary-container); background: var(--primary-container); font: 12px/1.65 "SFMono-Regular", Consolas, monospace; tab-size: 4; }
 .code-field textarea:focus { outline-color: rgba(255,255,255,.18); }
+.python-lab { margin-top: 23px; }
+.python-lab .response-field { margin-top: 0; }
+.python-lab .code-field textarea { min-height: 230px; color: #d8e0f0; border-color: #29324a; background: #101725; }
+.sandbox-contract { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.sandbox-contract span { padding: 4px 7px; border: 1px solid var(--outline-variant); color: var(--on-surface-variant); background: var(--surface-low); font: 700 8px/1.2 "SFMono-Regular", Consolas, monospace; letter-spacing: .045em; }
+.runner-status { margin-top: 12px; padding: 12px 13px; border: 1px solid var(--outline-variant); color: var(--on-surface-variant); background: var(--surface-low); display: flex; align-items: center; gap: 9px; font-size: 11px; }
+.runner-status i { width: 13px; height: 13px; border: 2px solid var(--outline-variant); border-top-color: var(--tertiary-container); border-radius: 50%; animation: runner-spin .75s linear infinite; }
+.test-report { margin-top: 12px; border: 1px solid var(--outline-variant); border-left: 3px solid var(--error); background: var(--surface-lowest); }
+.test-report.passed { border-left-color: var(--secondary); }
+.test-report > header { padding: 12px 14px; border-bottom: 1px solid var(--outline-variant); display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.test-report > header strong { font: 600 16px/1.2 "Source Serif 4", Georgia, serif; }
+.test-report > header span { min-width: 42px; padding: 4px 7px; color: var(--on-surface-variant); background: var(--surface-low); text-align: center; font: 700 9px/1 "SFMono-Regular", Consolas, monospace; }
+.test-report ul { margin: 0; padding: 10px 14px; list-style: none; display: grid; gap: 7px; }
+.test-report li { display: flex; align-items: center; gap: 8px; color: var(--on-surface-variant); font-size: 11px; }
+.test-report li span { width: 15px; font-weight: 800; }
+.test-report li.passed span { color: var(--secondary); }
+.test-report li.failed span { color: var(--error); }
+.runtime-error { margin: 12px 14px 0; padding: 10px 11px; color: var(--error); background: var(--error-container); font: 500 10px/1.5 "SFMono-Regular", Consolas, monospace; }
+.test-report pre { overflow: auto; max-height: 140px; margin: 0; padding: 12px 14px; border-top: 1px solid var(--outline-variant); color: #d8e0f0; background: #101725; white-space: pre-wrap; font: 10px/1.55 "SFMono-Regular", Consolas, monospace; }
+@keyframes runner-spin { to { transform: rotate(360deg); } }
 
 .hint-ladder { margin-top: 22px; padding: 15px 16px; border-left: 2px solid var(--outline-variant); background: var(--surface-low); }
 .hint-ladder > div { display: flex; justify-content: space-between; gap: 12px; }

@@ -1,5 +1,7 @@
 import rawCatalog from "../content/courses/raw-data-to-learning-model/catalog.json";
 import rawReviews from "../content/courses/raw-data-to-learning-model/reviews.json";
+import rawPythonLabs from "../content/courses/raw-data-to-learning-model/python-labs.json";
+import type { PythonLabDefinition } from "./python-runner";
 
 export type ChoiceInput = {
   kind: "choice";
@@ -63,6 +65,7 @@ export type ReviewActivity = {
 
 export const lessonCatalog = rawCatalog as CourseCatalog;
 export const reviewCatalog = rawReviews as Record<string, ReviewActivity>;
+export const pythonLabCatalog = rawPythonLabs as Record<string, PythonLabDefinition>;
 
 export function getLesson(lessonId: string): LessonContent {
   return lessonCatalog.lessons.find((lesson) => lesson.id === lessonId) ?? lessonCatalog.lessons[0];
@@ -70,4 +73,8 @@ export function getLesson(lessonId: string): LessonContent {
 
 export function getReview(lessonId: string): ReviewActivity {
   return reviewCatalog[lessonId] ?? reviewCatalog[lessonCatalog.lessons[0].id];
+}
+
+export function getPythonLab(lessonId: string): PythonLabDefinition {
+  return pythonLabCatalog[lessonId] ?? pythonLabCatalog[lessonCatalog.lessons[0].id];
 }
