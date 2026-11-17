@@ -1,52 +1,35 @@
-# BriliantAI Design System
+# BrilliantAI Design System
 
-## Design promise
+## Study workspace
 
-BriliantAI is a structured academic workspace for understanding AI, Data, algorithms, logic, and their mathematical foundations. The interface follows the supplied Scholaris template: quiet parchment surfaces, strong typographic hierarchy, compact controls, and evidence-based learning states.
+The interface keeps the next learning action, source material and evidence of understanding visible. Home opens with the actual first TodayQueue action and its reason. Evidence summaries and analytics expand on demand.
 
-## Product anatomy
+## Navigation
 
-1. **Learning Hub:** active topics, cognitive depth, aspect analysis, the next best learning action, and recent dialogues.
-2. **Socratic Lab:** a split workspace that keeps guided inquiry and the learner's mental model visible together.
-3. **Architect:** a knowledge map with grouped concepts and a focused deep-dive panel.
-4. **Checklist:** mastery evidence broken down by aspect rather than lesson completion.
+Desktop uses a 220px sidebar; mobile has four primary destinations: **Hôm nay**, **Thư viện**, **Tạo khóa học**, **Ôn tập**. Tracks R0–R4, the knowledge map, Passport / Checklist, Socratic Lab, Help and History remain in keyboard accessible secondary controls. The profile describes device-local progress without assigning a level or identity. A skip link targets the main content and navigation exposes the current page.
 
-Desktop uses a fixed 300px navigation rail. Mobile replaces it with a compact top bar and persistent bottom navigation.
-
-## Visual language
+## Visual roles
 
 | Role | Token | Value |
 |---|---|---|
-| Parchment | `--surface` | `#fcf9f4` |
-| Clean paper | `--surface-lowest` | `#ffffff` |
-| Tonal panel | `--surface-low` | `#f6f3ee` |
-| Container | `--surface-container` | `#f0ede9` |
-| Raised tone | `--surface-high` | `#ebe8e3` |
-| Primary ink | `--on-surface` | `#1c1c19` |
-| Secondary ink | `--on-surface-variant` | `#45464d` |
-| Border | `--outline-variant` | `#c6c6cd` |
-| Active navy | `--primary-container` | `#131b2e` |
-| Mastery emerald | `--secondary` | `#006c49` |
-| Mastery highlight | `--secondary-container` | `#6cf8bb` |
-| AI indigo | `--tertiary-container` | `#07006c` |
-| AI highlight | `--tertiary-fixed` | `#e1e0ff` |
-| Control radius | `--radius-control` | `4px` |
-| Panel radius | `--radius-panel` | `8px` |
+| Paper | `--surface` | `#F7F8F2` |
+| Panel | `--surface-lowest` | `#FFFFFF` |
+| Ink | `--on-surface` | `#17241D` |
+| Muted ink | `--on-surface-variant` | `#526258` |
+| Primary action | `--primary` | `#157347` |
+| Action label | `--on-dark` | `#FFFFFF` |
+| Selected field | `--secondary-container` | `#EAF5E9` |
+| Evidence | `--tertiary-container` | `#245B98` |
 
-- Headings and explanatory content use **Source Serif 4**.
-- Navigation, labels, and controls use **Hanken Grotesk**.
-- Uppercase mono labels are reserved for taxonomy, state, and evidence metadata.
-- Hierarchy comes from spacing, typography, borders, and tonal surfaces; shadows remain minimal.
+Inter / Manrope / Arial / sans-serif, with monospace reserved for code and numeric traces. Body prose is 16px, labels and metadata 14px, page headings 32–40px. Panels have thin borders and 12–16px corners without hard offset shadows. Focus is visible and controls are at least 44px. Normal foreground/background pairs reach 4.5:1 contrast.
 
-## Interaction rules
+`app/stitch-theme.css` is imported after `app/globals.css` and owns the shared theme. Legacy layouts stay in globals. Explicit descendant foregrounds cover code assistance, token input and dense output panels. Mental-model, delayed-review, activity-brief and hint prose override old small text sizes directly.
 
-- Ask for a prediction before revealing a result.
-- Keep the explanation and manipulable model in one context.
-- A mastery value must lead to supporting evidence or the next learning action.
-- Socratic prompts elicit reasoning before presenting an explanation.
-- Buttons keep a minimum 44px target and a visible keyboard focus state.
-- Motion communicates state change, respects `prefers-reduced-motion`, and never uses `transition: all`.
+## Real learning data
 
-## Fidelity guardrails
-
-Do not introduce centered marketing heroes, glassmorphism, decorative gradients, glowing cards, oversized corner radii, heavy shadows, stock AI imagery, or generic feature grids. New screens should extend the same sidebar, paper surfaces, typography, navy active state, emerald mastery state, and indigo AI state.
+- Loading progress is distinct from an empty queue. An empty TodaySession can open the diagnostic.
+- Home offers existing course access and source course creation. Library shows saved courses with search, filters and real progress; Create Course owns source input and draft editing. Both experiences share one SourceStudio state owner.
+- Review lists actual R0 and expansion schedules and saved-source review access. Targets retain lesson/course identity, review mode and return origin.
+- Review gates still require 72 hours; the interface cannot grant mastery early.
+- Questions, graders, prerequisite bridges, repair evidence and storage schemas remain unchanged.
+- Source URLs retain provenance only; video needs a transcript and scanned PDFs need text/OCR. The current source engine samples at most six passages. Drafts need an explicit save with at least two lessons.

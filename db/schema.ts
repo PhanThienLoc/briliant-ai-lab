@@ -1,4 +1,3 @@
-// Intentionally empty by default.
-// Add Drizzle tables here when the site actually needs a database.
-// See examples/d1/db/schema.ts for an opt-in example.
+// BriliantAI is a single-device learning app. Progress and learning traces stay
+// in browser storage, so the hosted application deliberately has no database.
 export {};

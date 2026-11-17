@@ -83,3 +83,18 @@ test("every Python activity is graded by three named hidden tests", async () => 
     assert.ok(lab.tests.every((hiddenTest) => hiddenTest.name && hiddenTest.expression && Object.hasOwn(hiddenTest, "expected")));
   }
 });
+
+test("production builds enforce authoring QA without impersonating human review", async () => {
+  const qa = JSON.parse(await readFile(new URL("../content/courses/raw-data-to-learning-model/authoring-qa.json", import.meta.url), "utf8"));
+  const buildScript = await readFile(new URL("../scripts/build-verified.sh", import.meta.url), "utf8");
+  const auditScript = await readFile(new URL("../scripts/audit-content.mjs", import.meta.url), "utf8");
+
+  assert.equal(qa.lessons.length, 14);
+  assert.equal(Object.keys(qa.sources).length, 3);
+  assert.equal(qa.humanReviewStatus, "pending");
+  assert.ok(qa.lessons.every((lesson) => lesson.outcomes.length >= 3 && lesson.misconceptions.length >= 3));
+  assert.match(buildScript, /audit-content\.mjs/);
+  assert.match(auditScript, /pasted hints bypass the explanation grader/);
+  assert.match(auditScript, /source locator is not verified/);
+  assert.match(auditScript, /Automated QA must not impersonate human review/);
+});

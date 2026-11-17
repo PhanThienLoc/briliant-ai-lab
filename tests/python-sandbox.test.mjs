@@ -4,11 +4,18 @@ import test from "node:test";
 
 test("Python runner is disposable and resource-bounded", async () => {
   const runner = await readFile(new URL("../lib/python-runner.ts", import.meta.url), "utf8");
+  const dashboard = await readFile(new URL("../app/learning-dashboard.tsx", import.meta.url), "utf8");
 
   assert.match(runner, /new Worker\("\/python-worker\.mjs"/);
   assert.match(runner, /EXECUTION_TIMEOUT_MS = 2_500/);
   assert.match(runner, /BOOT_TIMEOUT_MS = 30_000/);
   assert.match(runner, /worker\.terminate\(\)/);
+  assert.match(runner, /function createRunId\(\)/);
+  assert.match(runner, /typeof crypto !== "undefined"/);
+  assert.match(runner, /let settled = false/);
+  assert.match(runner, /Không thể mở Python worker/);
+  assert.match(dashboard, /try \{\s*result = await runPythonLab/);
+  assert.match(dashboard, /finally \{\s*setRunnerPhase\(null\)/);
 });
 
 test("Python sandbox rejects ambient capabilities before execution", async () => {

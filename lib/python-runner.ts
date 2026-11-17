@@ -22,21 +22,45 @@ export type RunnerPhase = "booting" | "executing";
 const BOOT_TIMEOUT_MS = 30_000;
 const EXECUTION_TIMEOUT_MS = 2_500;
 
+function createRunId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = crypto.getRandomValues(new Uint32Array(4));
+    return `run-${Array.from(bytes, (value) => value.toString(36)).join("-")}`;
+  }
+  return `run-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
 export function runPythonLab(
   code: string,
   lab: PythonLabDefinition,
   onPhase?: (phase: RunnerPhase) => void,
 ): Promise<PythonRunResult> {
   return new Promise((resolve) => {
-    const worker = new Worker("/python-worker.mjs", { type: "module", name: "briliantai-python-sandbox" });
-    const id = crypto.randomUUID();
+    const id = createRunId();
+    let worker: Worker;
+    try {
+      worker = new Worker("/python-worker.mjs", { type: "module", name: "briliantai-python-sandbox" });
+    } catch {
+      resolve({ passed: false, tests: [], output: "", error: "Không thể mở Python worker trên trình duyệt này." });
+      return;
+    }
+    let settled = false;
     let executionTimer: ReturnType<typeof setTimeout> | null = null;
     const bootTimer = setTimeout(() => finish({ passed: false, tests: [], output: "", error: "Python runtime tải quá lâu. Hãy kiểm tra mạng và thử lại." }), BOOT_TIMEOUT_MS);
 
     function finish(result: PythonRunResult) {
+      if (settled) return;
+      settled = true;
       clearTimeout(bootTimer);
       if (executionTimer) clearTimeout(executionTimer);
-      worker.terminate();
+      try {
+        worker.terminate();
+      } catch {
+        // A worker that already failed may also reject termination.
+      }
       resolve(result);
     }
 
@@ -44,7 +68,11 @@ export function runPythonLab(
     worker.onmessage = (event: MessageEvent) => {
       const message = event.data ?? {};
       if (message.type === "ready") {
-        worker.postMessage({ id, code, lab });
+        try {
+          worker.postMessage({ id, code, lab });
+        } catch {
+          finish({ passed: false, tests: [], output: "", error: "Không thể gửi bài code vào Python worker." });
+        }
         return;
       }
       if (message.type === "executing" && message.id === id) {

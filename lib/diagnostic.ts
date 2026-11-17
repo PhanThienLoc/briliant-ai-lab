@@ -1,4 +1,4 @@
-import rawDiagnostic from "../content/courses/raw-data-to-learning-model/diagnostic.json";
+import rawDiagnostic from "../content/courses/raw-data-to-learning-model/diagnostic.json" with { type: "json" };
 
 export type DiagnosticAxis = "problem_framing" | "data" | "math" | "optimization" | "validation";
 

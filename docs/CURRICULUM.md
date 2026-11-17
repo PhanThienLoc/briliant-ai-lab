@@ -53,3 +53,15 @@ Every lesson must define:
 - source metadata and copyright-safe original explanation.
 
 AI-generated lesson drafts are never published without human review.
+
+Every explanation activity also owns four calibration boundaries: a canonical valid answer, a valid answer using alternate wording, a copied-hint answer, and a fluent but mechanistically incomplete answer. These examples are original QA fixtures, not learner-facing solutions.
+
+## R4 vertical slice
+
+Hai nhánh học hội tụ ở quyết định hệ thống:
+
+1. Dense layer và ReLU → backprop và chain rule.
+2. Tokenization và embedding → scaled dot-product attention.
+3. Hai nhánh → evaluation theo quality, latency và cost.
+
+Mỗi lab có behavioral challenge, prerequisite-edge transfer và delayed review sau ít nhất 72 giờ. Nguồn chính: *Deep Learning with Python, Third Edition* chương 2–3; *Build a Large Language Model (From Scratch)* chương 2–3; *AI Engineering* chương 3–4.

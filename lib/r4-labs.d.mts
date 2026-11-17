@@ -1,0 +1,10 @@
+export function relu(value: unknown): number;
+export function denseForward(inputs: number[], weights: number[], bias?: number): { contributions: number[]; preActivation: number; activation: number };
+export function gradientStep(options?: { x?: number; weight?: number; target?: number; learningRate?: number }): { prediction: number; error: number; loss: number; gradient: number; nextWeight: number; nextPrediction: number; nextLoss: number };
+export function tokenizeForEmbedding(text: unknown, mode?: string): { tokens: string[]; vectors: number[][]; pooled: number[]; unknownCount: number };
+export type AttentionToken = { token: string; key: number[]; value: number[] };
+export const attentionTokens: AttentionToken[];
+export function attentionSnapshot(subjectFocus?: number, tokens?: AttentionToken[]): { query: number[]; scores: number[]; weights: number[]; context: number[]; winner: string | null };
+export type AiCandidate = { id: string; label: string; quality: number; latency: number; cost: number };
+export const aiCandidates: AiCandidate[];
+export function evaluateAiCandidates(constraints: { minimumQuality: number; maximumLatency: number; maximumCost: number }, candidates?: AiCandidate[]): (AiCandidate & { checks: { quality: boolean; latency: boolean; cost: boolean }; eligible: boolean })[];

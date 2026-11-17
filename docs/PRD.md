@@ -44,6 +44,11 @@ Deliver one coherent 14-lesson course, **From Raw Data to a Learning Model**, an
 - Review scheduling.
 - Misconception log.
 - Progress view.
+- Six guided interactive mechanism labs spanning all 14 lessons.
+- Device-local learning mirror for evidence, retries, hint dependency, code failures, and scoring disputes.
+- Versioned Learning Passport export/import with allowlist validation and rollback.
+- Natural explanation coach with anti-hint-copy defense and a device-local repair queue.
+- Per-lesson concept aliases and a release-blocking boundary-answer calibration suite.
 - Source citations.
 - Vietnamese-first content with canonical English terms.
 
@@ -57,15 +62,20 @@ Deliver one coherent 14-lesson course, **From Raw Data to a Learning Model**, an
 - GPU training platform.
 - Fully autonomous content generation.
 - ML-based personalization before a rule-based baseline is measured.
+- Accounts, hosted database, server telemetry, social comparison, or multi-device sync.
 
 ## Release acceptance
 
 - All 14 lessons work end-to-end.
 - At least five activity types render from versioned content.
 - Progress persists without a blocking loss-of-state defect.
+- A valid local backup can restore learning state; an invalid or partially failed restore cannot overwrite the previous state.
 - Guessing repeatedly cannot produce mastery.
-- Target delayed recall is at least 75% after seven days in the pilot.
-- Target novel-transfer success is at least 70% without high-level hints.
+- Pasting hints, including hints followed by a shallow connector, cannot pass an explanation activity.
+- A failed explanation creates one concrete repair item; a later valid explanation removes it without storing the raw answer.
+- All 14 explanation activities pass canonical and synonym-positive cases while rejecting copied-hint and fluent-but-incomplete cases.
+- Personal target: delayed recall is at least 75% after seven days.
+- Personal target: novel-transfer success is at least 70% without high-level hints.
 - Every lesson has reviewed sources, original explanation, scoring rules, and misconception coverage.
 
 ## Product metrics
@@ -76,4 +86,4 @@ Deliver one coherent 14-lesson course, **From Raw Data to a Learning Model**, an
 - Recurring misconception rate.
 - Time from `learning` to `mastered`.
 - Review-queue completion.
-- Content defect and scoring-dispute rate.
+- Local content defects and scoring disputes marked for self-review.

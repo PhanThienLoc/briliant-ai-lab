@@ -5,12 +5,24 @@ Phòng gym tư duy tương tác dành cho người học AI và Data: **khái ni
 Repository này khởi tạo Release 0 của kế hoạch sản phẩm. Phiên bản hiện tại cung cấp:
 
 - Dashboard học tập với Today Queue, Skill Map và Review Queue.
-- Một hoạt động tương tác mẫu về mô hình tuyến tính.
-- Bản đồ 14 lesson cho khóa đầu tiên *Từ dữ liệu thô đến mô hình biết học*.
+- Adaptive session trên Learning Hub chọn bài ôn, sửa lỗi, nối prerequisite và thực hành mới từ evidence cục bộ; mỗi hành động nêu lý do và evidence cần đạt. Quy tắc mastery là tất định, AI không được cấp mastery.
+- Runtime data-driven cho 14 lesson và 70 hoạt động của khóa *Từ dữ liệu thô đến mô hình biết học*.
 - Lesson schema và một lesson nguồn mẫu.
 - Mastery state machine có kiểm thử.
 - Learner Diagnostic 10 câu trên 5 trục, lưu baseline và đề xuất lesson bắt đầu từ lỗ hổng sớm nhất.
 - Python Code Lab chạy code thật với 42 hidden tests, timeout và sandbox dùng một lần.
+- Explanation Defense chặn sao chép hint/từ khóa và Code Coach hỗ trợ cú pháp cho đủ 14 lesson.
+- Explanation Coach phản hồi theo mắt xích nhân quả, đưa từng lỗi vào Hàng đợi sửa mental model và tự xóa khi người học vượt lại.
+- Explanation Calibration có 56 ca biên trên đủ 14 lesson và concept aliases để giảm chấm oan khi người học dùng cách diễn đạt tương đương.
+- Authoring QA gate kiểm tra source, answer, rubric, 42 misconception, Code Coach và accessibility trước mọi production build.
+- Sáu họ trực quan tương tác phủ đủ 14 lesson: Data Lens, Function Machine, Dot Product, Error Lab, Gradient Descent và Generalization Lab.
+- Personal Learning Mirror tính evidence, retry, hint dependency, delayed mastery và lỗi Python ngay trong trình duyệt.
+- Toàn bộ tiến độ và learning log nằm trong `localStorage`; không tài khoản, database hay telemetry server.
+- Learning Passport xuất và khôi phục checkpoint JSON đã kiểm tra, có rollback để bảo vệ dữ liệu hiện tại.
+- Source Studio tạo bản nháp lộ trình từ PDF có lớp chữ, TXT/Markdown, transcript SRT/VTT hoặc văn bản dán vào. Mỗi bài giữ trích đoạn nguồn, kiểm tra hiểu và một câu biến thể mở sau 72 giờ; khóa học và tiến độ nằm trong Learning Passport.
+- R1/R2 có 11 lab tương tác trên learning graph; mỗi prerequisite edge có transfer check riêng, còn delayed review R0/R1/R2 được ưu tiên chung trên Learning Hub.
+- SQL sandbox parse và thực thi `INNER/LEFT/RIGHT/FULL OUTER JOIN`, `WHERE`, `GROUP BY`, `HAVING`, scalar aggregate subquery, `COUNT/SUM/AVG/MIN/MAX`, `ORDER BY`, `LIMIT` hoàn toàn cục bộ; challenge được chấm theo bảng kết quả thay vì so khớp chuỗi query.
+- Queue/BFS grader replay toàn bộ operation/transition trace và kiểm tra từng trạng thái trung gian, nên một traversal cuối đúng do đoán vẫn không đủ evidence.
 - PRD, kiến trúc, curriculum map và CI nền tảng.
 
 ## Product rule
@@ -28,6 +40,7 @@ Quality gates:
 
 ```bash
 npm run lint
+npm run audit:content
 npm test
 ```
 
@@ -42,13 +55,15 @@ npm test
 
 ## Current scope
 
-Release 0 is a focused eight-week MVP. It deliberately excludes payments, social features, a public CMS, GPU training infrastructure, arbitrary server-side notebooks, and autonomous lesson publication.
+Release 0 is a focused eight-week MVP; R1/R2 currently add an eleven-lab prerequisite and delayed-review path. The project deliberately excludes payments, social features, a public CMS, GPU training infrastructure, arbitrary server-side notebooks, and autonomous lesson publication.
+
+Source Studio is a local, deterministic draft generator. A URL is retained as provenance but is not fetched; video needs a supplied transcript, scanned PDFs need OCR, and generated questions must be checked against the source before use. It stores excerpts instead of the full uploaded file. No external AI service receives the source.
 
 See [Product requirements](docs/PRD.md), [Architecture](docs/ARCHITECTURE.md), [Curriculum](docs/CURRICULUM.md), [Design system](docs/DESIGN-SYSTEM.md), and [Roadmap](docs/ROADMAP.md).
 
 ## Runtime
 
-The web application runs on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
+The web application runs on [vinext](https://github.com/cloudflare/vinext). Product state is deliberately browser-local.
 
 ## Prerequisites
 
@@ -72,7 +87,7 @@ Scripts that need writable project-scoped home, npm, XDG, and temporary paths us
 - `.openai/hosting.json` declares optional Sites D1 and R2 bindings
 - `vite.config.ts` simulates declared bindings for local development
 - `db/index.ts` reads the D1 binding from the Cloudflare Worker environment
-- `db/schema.ts` starts intentionally empty
+- `db/schema.ts` để trống có chủ ý vì sản phẩm không dùng database
 - `examples/d1/` contains an optional D1 example surface
 - `drizzle.config.ts` supports local migration generation when needed
 

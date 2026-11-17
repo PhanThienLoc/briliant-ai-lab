@@ -30,12 +30,13 @@ test("renders the Vietnamese learning dashboard", async () => {
 
   assert.match(html, /<html[^>]*lang=["']vi["']/i);
   assert.match(html, /<title>BriliantAI Lab<\/title>/i);
-  assert.match(html, /Vector và dot product/i);
-  assert.match(html, /Learning Hub/i);
-  assert.match(html, /Evidence Depth/i);
-  assert.match(html, /Delayed recall queue/i);
-  assert.match(html, /Feynman Technique/i);
-  assert.match(html, /Recent Socratic Dialogues/i);
-  assert.match(html, /Tìm đúng điểm bắt đầu/i);
+  assert.match(html, /Hôm nay, học sâu hơn một chút\./);
+  assert.match(html, /Tiếp tục bài học đang mở hoặc xem các nội dung ôn tập\./);
+  for (const label of ["Hôm nay", "Thư viện", "Tạo khóa học", "Ôn tập", "Công cụ học tập"]) assert.ok(html.includes(label));
+  assert.match(html, /Đang đọc tiến độ trên thiết bị này/);
+  assert.match(html, /aria-busy="true"/);
+  assert.match(html, /href="#main-content"/);
+  assert.match(html, /Tiến độ trên thiết bị/);
+  assert.doesNotMatch(html, /Chưa có hành động phù hợp|Không có mắt xích nào đang nợ|Deep Learner|Level: Analyzing/);
   assert.doesNotMatch(html, /Starter Project/i);
 });

@@ -1,6 +1,6 @@
-import rawCatalog from "../content/courses/raw-data-to-learning-model/catalog.json";
-import rawReviews from "../content/courses/raw-data-to-learning-model/reviews.json";
-import rawPythonLabs from "../content/courses/raw-data-to-learning-model/python-labs.json";
+import rawCatalog from "../content/courses/raw-data-to-learning-model/catalog.json" with { type: "json" };
+import rawReviews from "../content/courses/raw-data-to-learning-model/reviews.json" with { type: "json" };
+import rawPythonLabs from "../content/courses/raw-data-to-learning-model/python-labs.json" with { type: "json" };
 import type { PythonLabDefinition } from "./python-runner";
 
 export type ChoiceInput = {

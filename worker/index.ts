@@ -2,21 +2,9 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 
-interface Env {
+interface Env extends Cloudflare.Env {
   ASSETS: Fetcher;
-  DB: D1Database;
-  IMAGES: {
-    input(stream: ReadableStream): {
-      transform(options: Record<string, unknown>): {
-        output(options: { format: string; quality: number }): Promise<{ response(): Response }>;
-      };
-    };
-  };
-}
-
-interface ExecutionContext {
-  waitUntil(promise: Promise<unknown>): void;
-  passThroughOnException(): void;
+  IMAGES: ImagesBinding;
 }
 
 // Image security config. SVG sources with .svg extension auto-skip the
@@ -34,6 +22,10 @@ const worker = {
       return handleImageOptimization(request, {
         fetchAsset: (path) => env.ASSETS.fetch(new Request(new URL(path, request.url))),
         transformImage: async (body, { width, format, quality }) => {
+          // vinext exposes format as string; its negotiator emits these MIME types.
+          if (format !== "image/avif" && format !== "image/webp" && format !== "image/jpeg") {
+            throw new Error(`Unsupported negotiated image format: ${format}`);
+          }
           const result = await env.IMAGES.input(body).transform(width > 0 ? { width } : {}).output({ format, quality });
           return result.response();
         },

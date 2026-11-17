@@ -18,6 +18,12 @@ if [[ ! -x "${vinext}" ]]; then
   exit 69
 fi
 
+echo "Running TypeScript gate..."
+npm --prefix "${SITES_PROJECT_ROOT}" run typecheck
+
+echo "Running authoring QA gate..."
+node "${SITES_PROJECT_ROOT}/scripts/audit-content.mjs"
+
 echo "Running bounded vinext build..."
 timeout \
   --signal=TERM \

@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "policy": "Boundary cases are original Vietnamese explanations. Accepted cases must pass without copying hints; rejected cases must fail without storing learner text.",
+  "lessons": [
+    {
+      "lessonId": "problem-frame",
+      "activityId": "frame-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Nếu chưa xác định quyết định và mục tiêu thật, team có thể chọn một metric dễ tối ưu rồi xây model rất chính xác cho sai bài toán. Vì ràng buộc sử dụng chưa rõ, prediction dù đẹp cũng không dẫn tới hành động hữu ích." },
+        { "id": "synonym-boundary", "answer": "Thuật toán chỉ học đích mà ta giao. Khi việc doanh nghiệp sẽ làm sau dự đoán còn mơ hồ, một chỉ số đánh giá cao không chứng minh sản phẩm tạo giá trị; điều kiện thực tế có thể khiến kết quả không dùng được." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Bắt đầu từ model thường hấp dẫn vì có thể thử nhiều thuật toán hiện đại và tạo demo rất nhanh. Nhóm cũng dễ so sánh kết quả giữa các phiên bản, trình bày biểu đồ đẹp và cho thấy hệ thống có vẻ tiến bộ qua từng lần chạy." }
+      ]
+    },
+    {
+      "lessonId": "data-feature-label",
+      "activityId": "dfl-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Ví dụ dự đoán khách rời đi tại thời điểm đầu tháng: feature là dữ liệu đăng nhập có trước mốc đó, còn label là việc họ thực sự rời đi sau đó. Nếu đưa lý do hủy tương lai vào đầu vào, leakage xảy ra vì model đã nhìn thấy thông tin chưa tồn tại lúc prediction." },
+        { "id": "synonym-boundary", "answer": "Lúc chấm điểm hồ sơ ở ngày t, biến đầu vào phải là thuộc tính đã có tại t; nhãn là kết quả cần dự đoán và thường chỉ biết về sau. Dùng một cột phát sinh sau quyết định khiến dữ liệu rò rỉ, nên validation trông tốt giả tạo." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Feature và label đều là những cột quan trọng trong một bảng dữ liệu dùng cho Machine Learning. Chúng cần được đặt tên rõ, có kiểu dữ liệu nhất quán và không chứa quá nhiều giá trị trống để quá trình huấn luyện chạy ổn định." }
+      ]
+    },
+    {
+      "lessonId": "data-quality",
+      "activityId": "dq-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Missing nghĩa là ô dữ liệu bị thiếu, invalid nghĩa là có giá trị nhưng vi phạm quy tắc hợp lệ, còn stale là giá trị từng đúng nhưng đã quá cũ. Vì ba lỗi đánh vào sự tồn tại, tính đúng miền và thời gian cập nhật khác nhau nên chúng cần ba gate riêng." },
+        { "id": "synonym-boundary", "answer": "Một tuổi bị trống là thiếu; tuổi 300 là sai miền; tuổi hợp lệ nhưng lấy từ hồ sơ sáu năm trước là lỗi thời. Cả ba đều làm data không phù hợp, nhưng nguyên nhân lần lượt là không có giá trị, vi phạm quy tắc và không còn đủ mới cho quyết định." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Data quality rất quan trọng vì dữ liệu xấu sẽ làm kết quả phân tích và mô hình giảm chất lượng. Team nên kiểm tra file đầu vào, làm sạch dữ liệu, theo dõi pipeline thường xuyên và đặt cảnh báo để phát hiện vấn đề càng sớm càng tốt." }
+      ]
+    },
+    {
+      "lessonId": "functions",
+      "activityId": "fn-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Một pipeline là chuỗi hàm: output của bước làm sạch trở thành input của bước chuẩn hóa rồi đi vào model. Nếu type hoặc shape đầu ra không thuộc domain mà hàm sau chấp nhận, chuỗi biến đổi sẽ lỗi hoặc âm thầm xử lý sai." },
+        { "id": "synonym-boundary", "answer": "Có thể xem mỗi khâu như một quy tắc xử lý nhận đầu vào và trả kết quả ra. Vì dữ liệu trả ra của khâu trước được giao thẳng cho khâu tiếp theo, hợp đồng về kiểu dữ liệu và kích thước phải khớp thì toàn hệ thống mới chạy đúng." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Data pipeline gồm nhiều bước được sắp xếp theo thứ tự để tự động hóa công việc. Nó giúp nhóm chạy lại quy trình dễ hơn, giảm thao tác thủ công và tạo ra kết quả nhất quán giữa nhiều lần thực thi khác nhau." }
+      ]
+    },
+    {
+      "lessonId": "vectors",
+      "activityId": "vec-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Mỗi feature đưa một giá trị và trọng số cho biết giá trị đó ảnh hưởng mạnh đến đâu. Ta nhân chúng để có từng đóng góp, rồi cộng các phần lại nên dot product tạo ra prediction cuối cùng." },
+        { "id": "synonym-boundary", "answer": "Hãy tưởng tượng mỗi đặc trưng bỏ một phần điểm vào tổng. Mức quan trọng điều chỉnh phần điểm ấy; vì các contribution được gộp lại, kết quả cuối phản ánh đồng thời mọi tín hiệu đầu vào." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Dot product là một phép toán rất phổ biến trong đại số tuyến tính và Machine Learning. Nó có thể được tính nhanh trên máy tính, hoạt động với hai vector cùng kích thước và xuất hiện trong nhiều loại mô hình khác nhau." }
+      ]
+    },
+    {
+      "lessonId": "linear-model",
+      "activityId": "lm-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Mỗi weight điều khiển prediction nhạy với feature tương ứng ra sao: feature đổi một đơn vị thì đầu ra đổi theo hệ số đó. Bias không phụ thuộc feature; nó dịch baseline nên cho biết đầu ra khi các feature bằng 0." },
+        { "id": "synonym-boundary", "answer": "Trọng số là độ dốc gắn với từng đặc trưng, vì vậy nó quyết định tín hiệu nào làm dự đoán tăng hoặc giảm mạnh. Hệ số chặn lại đặt mốc nền cho toàn bộ đầu ra, kể cả khi đầu vào đều bằng không." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Mô hình tuyến tính là một phương pháp đơn giản, dễ huấn luyện và dễ giải thích. Nó thường được dùng làm baseline trước khi thử các thuật toán phức tạp hơn, đồng thời có tốc độ dự đoán khá nhanh trên dữ liệu lớn." }
+      ]
+    },
+    {
+      "lessonId": "residual",
+      "activityId": "res-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Residual có dấu: lỗi dương và âm có thể triệt tiêu khi lấy trung bình. Vì vậy hai dự đoán sai lệch rất lớn theo hai hướng vẫn cho residual trung bình gần 0, dù độ lớn lỗi của từng điểm vẫn nghiêm trọng." },
+        { "id": "synonym-boundary", "answer": "Giả sử một điểm bị dự đoán thấp 100 và điểm kia cao 100; hai sai số có dấu bù nhau thành bình quân bằng không. Con số đó che mất magnitude, nên không chứng minh model dự đoán sát từng quan sát." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Residual là một đại lượng thường dùng để đánh giá mô hình hồi quy. Người phân tích có thể vẽ biểu đồ, quan sát phân phối và so sánh kết quả giữa nhiều phiên bản model để tìm ra phiên bản hoạt động tốt hơn." }
+      ]
+    },
+    {
+      "lessonId": "mse",
+      "activityId": "mse-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "MAE cộng độ lớn tuyệt đối, còn MSE bình phương từng lỗi. Vì bình phương tăng nhanh, một outlier có lỗi lớn nhận ảnh hưởng vượt trội và có thể chi phối giá trị MSE hơn nhiều quan sát bình thường." },
+        { "id": "synonym-boundary", "answer": "Sai số tuyệt đối tăng tuyến tính: lỗi 10 đóng góp 10. Sai số bình phương lại đóng góp 100, nên điểm ngoại lệ càng xa càng được khuếch đại mạnh; vì thế mean squared error nhạy hơn mean absolute error." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "MSE và MAE đều là metric phổ biến cho bài toán hồi quy. Chúng có đơn vị và cách diễn giải khác nhau, vì vậy người làm dữ liệu nên xem xét bối cảnh kinh doanh trước khi chọn một metric để báo cáo." }
+      ]
+    },
+    {
+      "lessonId": "derivative",
+      "activityId": "der-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Đạo hàm đo độ nhạy cục bộ: quanh một điểm, input thay đổi rất nhỏ thì output đổi nhanh và theo hướng nào. Vì slope có thể khác ở điểm khác, một đạo hàm không mô tả toàn bộ hình dạng của hàm." },
+        { "id": "synonym-boundary", "answer": "Derivative giống đồng hồ đo mức phản ứng ngay tại vị trí đang đứng. Khi dịch đầu vào một lượng nhỏ, nó ước lượng đầu ra đổi ra sao; nhưng hàm cong có tốc độ đổi khác ở nơi khác nên phép đo lân cận không đại diện mọi vị trí." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Đạo hàm là một công cụ toán học quan trọng được dùng trong tối ưu hóa và Machine Learning. Nó có nhiều quy tắc tính toán, có thể áp dụng cho đa thức và giúp giải nhiều bài toán kỹ thuật trong thực tế." }
+      ]
+    },
+    {
+      "lessonId": "gradient",
+      "activityId": "grad-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Một đạo hàm đơn cho độ nhạy theo một biến, còn gradient là vector gồm các đạo hàm riêng theo từng parameter. Vì mỗi thành phần nói loss đổi ra sao khi đổi một tham số, toàn vector xác định hướng tăng loss nhanh nhất." },
+        { "id": "synonym-boundary", "answer": "Model có nhiều tham số nên cần một danh sách độ nhạy, không phải một slope duy nhất. Vectơ đạo hàm gom mức phản ứng của loss với từng weight; do đó đổi dấu của nó cho ta chiều cập nhật làm loss giảm." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Gradient là khái niệm quan trọng trong tối ưu hóa và thường được tính tự động bởi framework. Nó giúp các mô hình hiện đại học từ dữ liệu nhanh hơn và được dùng trong nhiều thuật toán khác nhau." }
+      ]
+    },
+    {
+      "lessonId": "learning-rate",
+      "activityId": "lr-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Learning rate đặt độ lớn mỗi bước update xuống loss. Bước quá nhỏ khiến hội tụ chậm dù ổn định, còn bước quá lớn dễ nhảy qua đáy rồi dao động, nên cần cân bằng tốc độ với khả năng tiến gần điểm tối ưu." },
+        { "id": "synonym-boundary", "answer": "Tốc độ học giống độ dài sải chân khi xuống thung lũng: sải ngắn cần rất nhiều vòng mới đến đáy; sải dài đi nhanh nhưng có thể vượt đáy liên tục. Vì vậy kích thước bước quyết định cả tốc độ lẫn sự ổn định." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Learning rate là một hyperparameter quan trọng và thường được thử với nhiều giá trị khác nhau. Ta có thể dùng grid search hoặc random search, theo dõi biểu đồ và chọn cấu hình có kết quả tốt nhất." }
+      ]
+    },
+    {
+      "lessonId": "from-scratch",
+      "activityId": "scratch-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Mỗi vòng tạo prediction, dùng label để tính loss rồi lấy gradient chỉ hướng sửa parameter. Sau update, model tạo dự đoán mới và nhận feedback mới; vì kết quả vòng trước thay đổi đầu vào trạng thái của vòng sau, training là một hệ thống phản hồi." },
+        { "id": "synonym-boundary", "answer": "Mô hình phát ra đầu ra, đo mức lệch rồi biến sai số thành hướng sửa weight. Các tham số được cập nhật trước khi quy trình lặp lại, nên mỗi chu kỳ dùng phản hồi của chu kỳ trước để điều chỉnh hành vi thay vì chỉ chạy một danh sách lệnh độc lập." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Training loop thường có nhiều dòng code và chạy qua nhiều epoch. Người lập trình cần viết vòng lặp đúng cú pháp, theo dõi tốc độ thực thi, lưu checkpoint định kỳ và bảo đảm máy có đủ bộ nhớ cho dữ liệu." }
+      ]
+    },
+    {
+      "lessonId": "validation",
+      "activityId": "val-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Overfitting xảy ra khi model học train rất tốt nhưng validation kém, nên khoảng cách giữa hai tập lớn cho thấy khả năng tổng quát yếu. Underfitting khác ở chỗ cả train lẫn validation đều kém vì model chưa nắm được pattern nền." },
+        { "id": "synonym-boundary", "answer": "Quá khớp giống học thuộc dữ liệu huấn luyện: điểm trên dữ liệu học cao nhưng rơi mạnh ở tập kiểm định chưa dùng để fit. Chưa học đủ thì cả hai tập đều thấp, vì vậy chênh lệch giúp phân biệt hai thất bại." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Validation là bước quan trọng để đánh giá mô hình trước khi triển khai. Team nên chia dữ liệu cẩn thận, dùng cùng metric giữa các lần thử và lưu kết quả để có thể so sánh nhiều model một cách công bằng." }
+      ]
+    },
+    {
+      "lessonId": "capstone",
+      "activityId": "cap-explain",
+      "accepted": [
+        { "id": "canonical-causal", "answer": "Model score cao chỉ nói nó làm tốt theo metric trên data validation đã chọn. Dự án chỉ thành công khi mục tiêu gắn với quyết định thật, dữ liệu production tương thích và hệ thống vận hành ổn định; nếu bỏ qua giới hạn hay failure mode, điểm số không bảo đảm tạo giá trị." },
+        { "id": "synonym-boundary", "answer": "Một mô hình có thước đo đẹp vẫn có thể thất bại nếu đầu vào ngoài đời khác dữ liệu kiểm định hoặc dự đoán không dẫn tới hành động hữu ích. Vì sản phẩm còn chịu ràng buộc độ trễ, độ ổn định và trường hợp lỗi, đánh giá kỹ thuật chỉ là một cổng trong hệ thống end-to-end." }
+      ],
+      "rejected": [
+        { "id": "hint-copy", "kind": "hints", "expectedDiagnosis": "copied_hint" },
+        { "id": "fluent-incomplete", "answer": "Một dự án Machine Learning tốt cần model có score cao và được huấn luyện cẩn thận. Team nên thử nhiều thuật toán, điều chỉnh hyperparameter, tăng tài nguyên tính toán và tạo báo cáo đẹp để thuyết phục các bên liên quan." }
+      ]
+    }
+  ]
+}

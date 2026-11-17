@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "automatedReviewDate": "2026-08-27",
+  "humanReviewStatus": "pending",
+  "sources": {
+    "think-like-data-scientist": {
+      "title": "Think Like a Data Scientist",
+      "verification": "Provided reference TOC checked",
+      "approvedLocators": [
+        "Chapters 1–2: project goals, concrete questions, and practical outcomes",
+        "Chapters 4–5: data wrangling and data assessment",
+        "Chapters 6, 10–11: planning, execution, refinement, and delivery"
+      ]
+    },
+    "deep-learning-with-python-3e": {
+      "title": "Deep Learning with Python, Third Edition",
+      "verification": "Provided reference TOC checked",
+      "approvedLocators": [
+        "Chapter 1: learning representations and rules from data",
+        "Chapter 2: tensor operations as transformations",
+        "Chapter 2.3.3: tensor product",
+        "Chapter 3: end-to-end linear classifier",
+        "Chapter 2.4.1: derivatives",
+        "Chapter 2.4.2: gradients of tensor operations",
+        "Chapter 2.4.3: stochastic gradient descent",
+        "Chapter 2.5: reimplementing a full training loop",
+        "Chapters 4–5: validation, generalization, and overfitting"
+      ]
+    },
+    "practical-statistics-data-scientists": {
+      "title": "Practical Statistics for Data Scientists",
+      "verification": "Provided reference chapter text checked",
+      "approvedLocators": [
+        "Chapter 4: fitted values, residuals, and regression diagnostics",
+        "Chapter 4: assessing a model with squared prediction error and RMSE"
+      ]
+    }
+  },
+  "lessons": [
+    {
+      "id": "problem-frame",
+      "sourceId": "think-like-data-scientist",
+      "outcomes": ["Xác định quyết định cần hỗ trợ", "Chuyển mục tiêu mơ hồ thành target và metric", "Nêu ràng buộc trước khi chọn model"],
+      "misconceptions": ["Bắt đầu từ model thay vì quyết định", "Metric cao đồng nghĩa sản phẩm có ích", "Mục tiêu kinh doanh không cần mốc thời gian"]
+    },
+    {
+      "id": "data-feature-label",
+      "sourceId": "deep-learning-with-python-3e",
+      "outcomes": ["Phân biệt record, feature và label", "Đặt đúng prediction timestamp", "Phát hiện feature leakage"],
+      "misconceptions": ["Mọi cột ngoài label đều là feature hợp lệ", "Feature được phép xuất hiện sau prediction", "Label là input của model khi inference"]
+    },
+    {
+      "id": "data-quality",
+      "sourceId": "think-like-data-scientist",
+      "outcomes": ["Phân biệt missing, invalid và stale", "Thiết kế quality gate theo mục đích", "Chặn dữ liệu lỗi trước modeling"],
+      "misconceptions": ["Đọc được file nghĩa là dữ liệu tốt", "Mọi missing value đều nên điền 0", "Giá trị hợp lệ luôn đủ mới để dùng"]
+    },
+    {
+      "id": "functions",
+      "sourceId": "deep-learning-with-python-3e",
+      "outcomes": ["Đọc hàm như phép biến đổi", "Theo dõi thứ tự composition", "Kiểm tra hợp đồng input-output"],
+      "misconceptions": ["f(g(x)) chạy f trước", "Output type không ảnh hưởng bước sau", "Hàm chỉ là ký hiệu toán học"]
+    },
+    {
+      "id": "vectors",
+      "sourceId": "deep-learning-with-python-3e",
+      "outcomes": ["Tính dot product", "Giải thích weighted contribution", "Giữ prediction khi đổi scale feature"],
+      "misconceptions": ["Dot product dừng ở nhân từng phần tử", "Weight lớn luôn nghĩa feature quan trọng", "Đổi đơn vị feature không cần đổi weight"]
+    },
+    {
+      "id": "linear-model",
+      "sourceId": "deep-learning-with-python-3e",
+      "outcomes": ["Tính prediction tuyến tính", "Phân biệt weight và bias", "Nhận diện giới hạn boundary tuyến tính"],
+      "misconceptions": ["Bias là một feature weight", "Tăng bias chỉ đổi một prediction", "Mô hình tuyến tính biểu diễn được mọi boundary"]
+    },
+    {
+      "id": "residual",
+      "sourceId": "practical-statistics-data-scientists",
+      "outcomes": ["Tính residual đúng dấu", "Đọc under/over-prediction", "Dùng pattern residual để chẩn đoán"],
+      "misconceptions": ["Residual luôn là trị tuyệt đối", "Residual trung bình 0 nghĩa model tốt", "Residual có pattern vẫn là nhiễu ngẫu nhiên"]
+    },
+    {
+      "id": "mse",
+      "sourceId": "practical-statistics-data-scientists",
+      "outcomes": ["Tính MSE đúng thứ tự", "Giải thích tác động của bình phương", "Chọn MAE khi cần giảm ảnh hưởng outlier"],
+      "misconceptions": ["Lấy trung bình residual rồi mới bình phương", "MSE và MAE phản ứng giống nhau với lỗi lớn", "RMSE và MSE có cùng đơn vị"]
+    },
+    {
+      "id": "derivative",
+      "sourceId": "deep-learning-with-python-3e",
+      "outcomes": ["Hiểu đạo hàm là độ nhạy cục bộ", "Đọc dấu và độ lớn slope", "Xấp xỉ derivative bằng finite difference"],
+      "misconceptions": ["Đạo hàm mô tả toàn bộ hàm", "Đạo hàm 0 nghĩa hàm luôn không đổi", "Bước finite difference càng lớn càng chính xác"]
+    },
+    {
+      "id": "gradient",
+      "sourceId": "deep-learning-with-python-3e",
+      "outcomes": ["Phân biệt derivative và gradient", "Đọc gradient như vector độ nhạy", "Cập nhật nhiều parameter đúng chiều"],
+      "misconceptions": ["Gradient là một scalar", "Đi cùng gradient làm loss giảm", "Mọi parameter dùng chung một partial derivative"]
+    },
+    {
+      "id": "learning-rate",
+      "sourceId": "deep-learning-with-python-3e",
+      "outcomes": ["Viết một gradient step", "Giải thích tradeoff tốc độ-ổn định", "Nhận diện overshoot và hội tụ chậm"],
+      "misconceptions": ["Learning rate càng lớn càng tốt", "Learning rate thay thế gradient", "Dao động luôn do dữ liệu thiếu"]
+    },
+    {
+      "id": "from-scratch",
+      "sourceId": "deep-learning-with-python-3e",
+      "outcomes": ["Theo dõi training feedback loop", "Tính gradient của linear regression", "Thực hiện parameter update"],
+      "misconceptions": ["Update parameter trước khi tính loss", "Gradient chính là loss", "Training loop chỉ là lặp lại prediction"]
+    },
+    {
+      "id": "validation",
+      "sourceId": "deep-learning-with-python-3e",
+      "outcomes": ["Tách train và validation đúng vai trò", "Phân biệt overfitting và underfitting", "Ngăn validation leakage"],
+      "misconceptions": ["Fit preprocessing trên toàn bộ dữ liệu là an toàn", "Train score cao chứng minh generalization", "Validation được dùng như test cuối cùng không giới hạn"]
+    },
+    {
+      "id": "capstone",
+      "sourceId": "think-like-data-scientist",
+      "outcomes": ["Ưu tiên lỗi data trước tuning", "Lắp pipeline chống leakage", "Đánh giá model trong hệ thống quyết định"],
+      "misconceptions": ["Model score cao là đủ để ship", "Tuning sửa được target lỗi", "Production data luôn giống validation data"]
+    }
+  ],
+  "globalChecks": {
+    "keyboardAndLabels": "automated",
+    "colorContrast": "design-token-reviewed",
+    "answerAndRubricIntegrity": "automated",
+    "humanReadThrough": "pending",
+    "pilotScoringDisputes": "pending"
+  }
+}
