@@ -5,6 +5,9 @@ import { parseSourceCourses, SOURCE_COURSES_KEY } from "./source-course.ts";
 import { SOURCE_DRAFTS_KEY, parseCoverageDrafts } from "./source-draft-store.ts";
 import { SOURCE_PRACTICE_DRAFT_KEY, parseSourcePracticeDraft } from "./source-practice-draft.ts";
 
+import { TEACHING_COURSES_KEY, parseTeachingCourses } from "./ai-course.ts";
+import { TEACHING_PROGRESS_KEY, parseTeachingProgress } from "./teaching-progress.ts";
+
 export const LEARNING_BACKUP_SCHEMA = 1;
 export const MAX_BACKUP_BYTES = 512_000;
 
@@ -29,7 +32,7 @@ type StorageLike = Pick<Storage, "length" | "key" | "getItem" | "setItem" | "rem
 
 const LESSON_KEY = /^briliantai\.lesson\.[a-z0-9]+(?:-[a-z0-9]+)*\.progress\.v[23]$/;
 const EXPANSION_PROGRESS_KEYS = ["briliantai.expansion-progress.v3", "briliantai.expansion-progress.v2", "briliantai.expansion-progress.v1"] as const;
-const EXACT_KEYS = new Set([ADAPTIVE_STATE_KEY, SOURCE_DRAFTS_KEY, SOURCE_PRACTICE_DRAFT_KEY, SOURCE_COURSES_KEY, "briliantai.diagnostic.v1", "briliantai.learning-log.v1", "briliantai.repair-queue.v1", ...EXPANSION_PROGRESS_KEYS]);
+const EXACT_KEYS = new Set([TEACHING_COURSES_KEY, TEACHING_PROGRESS_KEY,ADAPTIVE_STATE_KEY, SOURCE_DRAFTS_KEY, SOURCE_PRACTICE_DRAFT_KEY, SOURCE_COURSES_KEY, "briliantai.diagnostic.v1", "briliantai.learning-log.v1", "briliantai.repair-queue.v1", ...EXPANSION_PROGRESS_KEYS]);
 const ADAPTIVE_STATE_FIELDS = new Set<keyof AdaptiveState>(["schemaVersion", "sessionMinutes", "lastGeneratedAt", "lastQueueIds"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -103,6 +106,8 @@ export function parseLearningBackupText(text: string): LearningBackup {
       if (!isAdaptiveStatePayload(parsed)) throw new Error("Adaptive state không hợp lệ.");
       data[key] = JSON.stringify(normalizeAdaptiveState(parsed));
     }
+    if (key === TEACHING_COURSES_KEY) parseTeachingCourses(value);
+    if (key === TEACHING_PROGRESS_KEY) parseTeachingProgress(value);
     if (key === SOURCE_DRAFTS_KEY) parseCoverageDrafts(value);
     if (key === SOURCE_PRACTICE_DRAFT_KEY) parseSourcePracticeDraft(value);
     if (key === SOURCE_COURSES_KEY) {

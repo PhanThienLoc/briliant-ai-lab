@@ -7,6 +7,7 @@ import { readSourcePracticeDraft, saveSourcePracticeDraft, clearSourcePracticeDr
 import { MAX_PDF_PAGES } from "../lib/pdf-page-range";
 
 import { CourseLibrary, sourceKindLabels as kindLabels } from "../components/learning/course-library";
+import { AiCourseStudio } from "../components/learning/ai-course-studio";
 import { SourceCoverage } from "../components/learning/source-coverage";
 import { buildSourceDocument, documentFromText } from "../lib/source-document";
 import { ingestText } from "../lib/source-ingest";
@@ -263,6 +264,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     </section> : <aside className="studio-preview-empty"><span className="studio-eyebrow">BƯỚC 2 · DUYỆT & LƯU</span><h2>Bài tập đã chọn xuất hiện ở đây</h2><p>Chọn “Xem bản nháp” để mở bản đồ độ phủ bên dưới, rồi chọn 2–6 mục để tạo bài tập. Ông có thể sửa mục tiêu trước khi lưu.</p><p className="studio-disclosure">Mỗi bài có một đoạn trích để ông đối chiếu trước khi lưu.</p></aside>}
     </div>
     {mode === "create" ? <SourceCoverage value={coverageDraft} onChange={(next) => { setCoverageDraft(next); setDraft(null); setSelectedIds([]); setEdits({}); }} onPractice={(course) => { pendingDraftFocus.current = true; setDraft(course); setSelectedIds(course.lessons.map((item) => item.id)); setEdits({}); }} /> : null}
+    {mode === "create" ? <AiCourseStudio draft={coverageDraft} /> : null}
     {mode === "library" && active && lesson ? <section className="studio-reader" aria-labelledby="studio-course-heading">
       <button className="back-link" onClick={() => { setActiveId(null); setChoice(null); setFeedback(null); }}>← Tất cả khóa học</button>
       <div className="studio-reader-head">

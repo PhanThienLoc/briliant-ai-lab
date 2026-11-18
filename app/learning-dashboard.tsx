@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ExpansionWorkbench } from "./expansion-workbench";
 import { SourceStudio } from "./source-studio";
+import { AiProvider } from "../components/learning/ai-context";
+import { AiSettings } from "../components/learning/ai-settings";
 import { readSourceCourses, type SourceCoursesReadResult } from "../lib/source-course";
 import { AdaptiveHub, useAdaptiveHubState, type AdaptiveHubState } from "../components/learning/adaptive-hub";
 import { curriculum } from "../lib/curriculum";
@@ -37,7 +39,7 @@ import {
   type MasteryState,
 } from "../lib/mastery-engine";
 
-type View = "hub" | "library" | "studio" | "reviews" | "tracks" | "architect" | "checklist";
+type View = "hub" | "library" | "studio" | "reviews" | "tracks" | "architect" | "checklist" | "settings";
 type IconName = View | "lab" | "help" | "plus" | "arrow" | "brain";
 type UtilityPanel = "help" | "history" | null;
 
@@ -84,10 +86,12 @@ const secondaryItems: Array<{ id: View; label: string }> = [
   { id: "tracks", label: "Tracks R0–R4" },
   { id: "architect", label: "Bản đồ kiến thức" },
   { id: "checklist", label: "Passport / Checklist" },
+  { id: "settings", label: "Cài đặt AI" },
 ];
 
 function Icon({ name }: { name: IconName }) {
   const shapes: Record<IconName, ReactNode> = {
+    settings: <><circle cx="12" cy="12" r="3" /><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1" /></>,
     plus: <path d="M12 4v16M4 12h16" />,
     help: <><circle cx="12" cy="12" r="9" /><path d="M9 9a3 3 0 116 0c0 2-3 2-3 4M12 17h.01" /></>,
     arrow: <path d="M4 12h16M14 6l6 6-6 6" />,
@@ -1255,6 +1259,10 @@ function MobileNav({ view, labOpen, onView, onLab, onHelp, onHistory }: { view: 
 }
 
 export function LearningDashboard() {
+  return <AiProvider><LearningDashboardContent /></AiProvider>;
+}
+
+function LearningDashboardContent() {
   const [view, setView] = useState<View>("hub");
   const [sourceTarget, setSourceTarget] = useState<{ courseId?: string; lessonId?: string }>({});
   const [sourceNavigationId, setSourceNavigationId] = useState(0);
@@ -1362,6 +1370,7 @@ export function LearningDashboard() {
         {!labOpen && !diagnosticOpen && view === "tracks" ? <ExpansionWorkbench initialLabId={activeExpansionId} initialReviewLabId={activeExpansionReviewId} initialEdgeId={activeExpansionEdgeId} onReviewClose={() => { setActiveExpansionReviewId(null); openView(expansionReturnView); }} onBack={() => { setActiveExpansionReviewId(null); setActiveExpansionEdgeId(null); openView(expansionReturnView); }} /> : null}
         {!labOpen && !diagnosticOpen && view === "reviews" ? <div className="reviews-canvas"><header className="template-page-header"><h1>Ôn tập</h1><p>Trở lại đúng bài, sau khoảng cách trí nhớ. Bài ôn chỉ mở khi đủ 72 giờ.</p></header>{adaptive.hydrated ? <><ReviewQueue snapshots={snapshots} expansionProgress={expansionProgress} onStart={openLesson} onExpansion={openExpansionItem} /><SourceReviews onOpen={openStudio} /></> : <p role="status">Đang đọc lịch ôn trên thiết bị…</p>}</div> : null}
         {!labOpen && !diagnosticOpen && view === "architect" ? <ArchitectView snapshots={snapshots} onStart={openLesson} /> : null}
+        {!labOpen && !diagnosticOpen && view === "settings" ? <AiSettings /> : null}
         {!labOpen && !diagnosticOpen && view === "checklist" ? <ChecklistView snapshots={snapshots} onStart={() => openLesson("vectors")} onMap={() => openView("architect")} onRestored={refreshLocalState} /> : null}
       </main>
       {utilityPanel ? <UtilityDialog panel={utilityPanel} history={history} onClose={() => setUtilityPanel(null)} /> : null}
