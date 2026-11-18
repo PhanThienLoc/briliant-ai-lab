@@ -1,4 +1,5 @@
 export const SOURCE_COURSES_KEY = "briliantai.source-courses.v1";
+export const MIN_SOURCE_CHARS = 400;
 export const MAX_SOURCE_CHARS = 120_000;
 
 export type SourceKind = "video" | "paper" | "book" | "article";
@@ -131,9 +132,13 @@ function structuredSections(clean: string, kind: SourceKind): SourceSection[] | 
   return null;
 }
 
+export function normalizeSourceText(text: string): string {
+  return text.replace(/\r/g, "").replace(/[ \t]+/g, " ").trim();
+}
+
 export function buildSourceCourse(input: { title: string; kind: SourceKind; text: string; sourceName: string; sourceUrl?: string }, now = new Date()): SourceCourse {
-  const clean = input.text.replace(/\r/g, "").replace(/[ \t]+/g, " ").trim();
-  if (clean.length < 400) throw new Error("Nguồn cần ít nhất 400 ký tự nội dung để tạo bài học có dẫn chứng.");
+  const clean = normalizeSourceText(input.text);
+  if (clean.length < MIN_SOURCE_CHARS) throw new Error(`Nguồn cần ít nhất ${MIN_SOURCE_CHARS} ký tự nội dung để tạo bài học có dẫn chứng.`);
   if (clean.length > MAX_SOURCE_CHARS) throw new Error("Nguồn quá dài. Hãy chia thành các phần dưới 120.000 ký tự.");
   const pageBlocks = clean.split(/(?=^Trang \d+\n)/m).map((block) => block.trim()).filter((block) => /^Trang \d+\n/.test(block));
   let sections: SourceSection[];

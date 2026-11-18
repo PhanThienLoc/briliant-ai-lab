@@ -108,6 +108,7 @@ function reviewCandidates(concepts: AdaptiveConceptState[], now: Date): RankedCa
     const dueAt = parsedTimestamp(concept.nextReviewAt);
     if (concept.state !== "review_due" || dueAt === null || dueAt > now.getTime()) return [];
     const overdueDays = Math.floor((now.getTime() - dueAt) / (24 * HOUR_MS));
+    const timing = overdueDays ? `đã quá hạn ${overdueDays} ngày` : "vừa đến hạn ôn";
     return [{
       id: `review:${concept.id}`,
       type: "review" as const,
@@ -115,7 +116,7 @@ function reviewCandidates(concepts: AdaptiveConceptState[], now: Date): RankedCa
       trackId: concept.trackId,
       minutes: 5,
       score: conceptScore(concept, now),
-      reason: `Ôn ${concept.title} trước vì bài đã quá hạn ${overdueDays} ngày${hintSuffix(concept.totalHints)}.`,
+      reason: `Ôn ${concept.title} trước vì bài ${timing}${hintSuffix(concept.totalHints)}.`,
       evidenceNeeded: `Hoàn thành bằng chứng ôn trì hoãn cho ${concept.title}.`,
       target: targetForConcept(concept, "review"),
       oldestDueAt: dueAt,

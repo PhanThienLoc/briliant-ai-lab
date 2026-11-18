@@ -1,0 +1,6 @@
+# Learning Studio rollout — 18 November 2026
+Includes the Hub and course creation pilot, saved library/reader, R0 learning workspace and R1–R4 labs. On the course card, a due unreviewed lesson takes priority over the next unfinished lesson. SQL editor changes invalidate the old result. Source length feedback and generation share whitespace normalization.
+
+Browser checks on the integrated local preview: desktop library, Hub and library in a 390px frame, library/source review/create/R0 Python workspace/SQL/R4 dense lab in a 320px frame. In the narrow frame the sample SQL table scrolled inside the page; changing the query removed its old result. A saved-course review link opened the due question. The R0 missing-data and noise sliders exposed accessible names. Source text containing mostly spaces did not enable preview.
+
+Strict typecheck, authoring audit, production build and 250/250 regression tests passed. ESLint: zero errors; three existing unused eslint-disable warnings in generated worker-runtime.d.ts. The tests used browser layout widths, not physical devices; not every lab was exercised manually. Course generation continues to create sampled exercises; persistent draft storage and full source coverage are separate work.

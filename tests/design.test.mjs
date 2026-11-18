@@ -43,13 +43,13 @@ test("the interface follows the approved calm learning system", async () => {
   assert.match(catalog, /NOVEL CONTEXT/);
   assert.match(dashboard, /localStorage\.setItem/);
   assert.match(dashboard, /Mastery chỉ mở sau bài ôn độc lập ≥ 72 giờ/);
-  assert.match(dashboard, /isolated WebAssembly sandbox/);
-  assert.match(dashboard, /Run hidden tests/);
+  assert.match(dashboard, /aria-describedby="python-limits"/);
+  assert.match(dashboard, /Chạy mã và kiểm thử/);
   assert.match(dashboard, /runPythonLab/);
   assert.match(dashboard, /getLesson\(lessonId\)/);
   assert.match(dashboard, /lesson\.activities\.map/);
   assert.match(dashboard, /Delayed recall queue/);
-  assert.match(dashboard, /DELAYED TRANSFER/);
+  assert.match(dashboard, /ÔN TẬP ĐỘC LẬP/);
   assert.match(dashboard, /useAdaptiveHubState/);
   assert.match(dashboard, /lessonEvidenceScore/);
   assert.match(dashboard, /FOUNDATION DIAGNOSTIC/);
@@ -58,7 +58,7 @@ test("the interface follows the approved calm learning system", async () => {
   assert.match(dashboard, /Trước khi nộp, tự hỏi 3 câu/);
   assert.match(dashboard, /Hàng đợi sửa mental model/);
   assert.match(dashboard, /BƯỚC SỬA NHỎ NHẤT/);
-  assert.match(dashboard, /CALIBRATED · 56 CASES/);
+  assert.match(dashboard, /Tôi đã nói rõ “vì sao”/);
   assert.match(dashboard, /Không nhớ lệnh Python/);
   assert.match(dashboard, /Xác minh code không trợ giúp/);
   assert.match(dashboard, /DATA LENS · REACTIVE SAMPLE/);

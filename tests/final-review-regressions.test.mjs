@@ -83,7 +83,7 @@ test('expansion mastery display also requires independent standard practice',asy
 test('Today action accessible name includes duration and required evidence',async()=>{
  const {readFile}=await import('node:fs/promises');
  const source=await readFile(new URL('../components/learning/today-session.tsx',import.meta.url),'utf8');
- assert.match(source,/aria-label=\{`[^`]*item\.minutes[^`]*item\.evidenceNeeded/);
+ assert.match(source,/aria-label=\{item\.target \? `[^`]*item\.minutes[^`]*item\.evidenceNeeded/);
 });
 
 test('lesson action uses tested persistence and retry transitions without deleting evidence',async()=>{

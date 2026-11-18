@@ -1,0 +1,33 @@
+/* Saved sources are reading material; each built-in track has a distinct line study. */
+.course-library .library-cover {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 82px; padding: 12px 20px;
+}
+.course-library .library-cover svg { width: 94px; height: 52px; margin: 0; flex: none; }
+.course-library .saved-course-card .library-cover { min-height: auto; padding-block: 10px; }
+.course-library .cover-article, .course-library .cover-r4 { color: #73412F; background: #FAEDE6; }
+.course-library .library-state:not([role]) { border: 1px solid var(--outline-variant); background: var(--secondary-container); }
+.course-library .library-card-actions { flex-wrap: wrap; }
+.source-studio .studio-reader-head {
+  padding: clamp(16px,3vw,30px); border-radius: var(--radius-panel); background: #1D4938; color: var(--on-dark);
+}
+.source-studio .studio-reader-head :is(h2,p,a,.studio-eyebrow) { color: var(--on-dark); }
+.source-studio .studio-reader-head a { display: inline-flex; align-items: center; text-decoration: underline; }
+.source-studio .studio-reader-head a:focus-visible { outline-color: var(--on-dark); }
+.reader-workspace {
+  display: grid; grid-template-columns: minmax(165px,1fr) minmax(0,3.3fr);
+  align-items: start; gap: clamp(16px,3vw,36px); margin-top: 24px;
+}
+.reader-workspace .studio-lesson-tabs { display: grid; gap: 8px; margin: 0; padding: 4px; }
+.reader-workspace .studio-lesson-tabs button { min-width: 0; }
+.reader-workspace .studio-lesson-tabs button.active { border-inline-start: 4px solid var(--primary); }
+.reader-workspace .studio-lesson-tabs strong { max-height: none; }
+.reader-workspace .studio-lesson { min-width: 0; width: 100%; }
+.reader-workspace .studio-lesson h3:focus { scroll-margin-top: 92px; }
+.reader-workspace blockquote { border-inline-start: 4px solid var(--primary); background: var(--surface-low); }
+.reader-workspace .studio-options button.selected { border-inline-start: 4px solid var(--primary); }
+.reader-workspace .studio-options button:disabled { opacity: 1; cursor: default; }
+@media(max-width:900px) {
+  .source-studio .reader-workspace { grid-template-columns: minmax(0,1fr); }
+  .reader-workspace .studio-lesson-tabs { grid-template-columns: repeat(auto-fit,minmax(min(100%,175px),1fr)); }
+}

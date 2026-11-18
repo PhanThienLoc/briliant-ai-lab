@@ -1,0 +1,34 @@
+.track-studio .track-switcher {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+.track-studio .track-switcher button {
+  align-content: start;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .55rem;
+  padding: 16px;
+}
+.track-studio .track-switcher button small { text-transform: none; }
+.track-studio .track-switcher button[aria-pressed="true"],
+.track-studio .active-lab-bar { color: #fff; background: #1d4938; }
+.track-studio .track-switcher button[aria-pressed="true"] :is(small, strong),
+.track-studio .active-lab-bar :is(.mono-label, h2) { color: #fff; }
+.track-studio .track-switcher button[aria-pressed="true"] > span { color: #1d4938; background: #e5f2e9; }
+.active-lab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px clamp(16px, 3vw, 30px);
+}
+.active-lab-bar h2 { margin: 4px 0 0; font-size: 20px; }
+.track-studio .active-lab-bar .outline-action { margin: 0; color: #1d4938; background: #e5f2e9; }
+.track-studio .query-table-scroll { max-width: 100%; overflow: auto; }
+.track-studio .sql-result > header { padding: 10px 12px; }
+.track-studio :is(.query-table-scroll, .sql-data):focus-visible { outline-offset: -3px; }
+.track-studio .sql-editor textarea { tab-size: 2; }
+@media (max-width: 640px) {
+  .track-studio .track-switcher { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .track-studio .track-switcher button { padding: 12px; overflow-wrap: anywhere; }
+  .track-studio .track-switcher button strong { font-size: 16px; }
+}

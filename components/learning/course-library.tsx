@@ -1,5 +1,6 @@
 "use client";
 
+import "../../app/library-studio.css";
 import { useState } from "react";
 import { filterSourceCourses, sourceCourseProgress } from "../../lib/course-library";
 import type { SourceCourse, SourceKind } from "../../lib/source-course";
@@ -8,27 +9,42 @@ import { lessonCatalog } from "../../lib/lesson-catalog";
 
 export const sourceKindLabels: Record<SourceKind, string> = { video: "Video / transcript", paper: "Bài báo khoa học", book: "Sách / chương sách", article: "Bài viết" };
 
+// Line studies identify the subject even without color.
+const trackStudies: Record<string, string> = {
+  r0: "M14 50h26V38h26V26h26V14h26",
+  r1: "M20 50V10m0 40h90M20 50l55-32m-18 1 18-1-8 15",
+  r2: "M8 12h40v36H8zM8 24h40m-20-12v36m44-32h40v36H72zM72 28h40m-20-12v36M48 33h24",
+  r3: "M12 52V8m0 44h101M19 44l84-29M29 37h4m8-7h4m4 6h4m9-13h4m8 4h4m12-14h4",
+  r4: "M19 16l41-5-41 35 41-16-41-14 41 35-41-5m41-35 43 19-43 21m-1-21h44",
+};
+
 function SubjectCover({ kind, label }: { kind: string; label: string }) {
-  return <div className={`library-cover cover-${kind}`} aria-hidden="true"><span>{label}</span><svg viewBox="0 0 200 100" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 75h160M35 85V20M35 65l35-25 30 13 55-33" /><circle cx="70" cy="40" r="5" /><circle cx="100" cy="53" r="5" /><circle cx="155" cy="20" r="5" /><path d={kind === "video" ? "M140 65l20 10-20 10V65Z" : "M130 65h40v20h-40zM150 65v20"} /></svg></div>;
+  return <div className={`library-cover cover-${kind}`}><span>{label}</span>
+    {trackStudies[kind] && <svg aria-hidden="true" viewBox="0 0 124 62" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"><path d={trackStudies[kind]} /></svg>}
+  </div>;
 }
 
 type LibraryProps = {
-  courses: SourceCourse[]; hydrated: boolean; storageError: string;
-  onOpen: (course: SourceCourse) => void; onRemove: (course: SourceCourse) => void;
+  courses: SourceCourse[]; now: number; hydrated: boolean; storageError: string;
+  onOpen: (course: SourceCourse, index: number) => void; onRemove: (course: SourceCourse) => void;
   onCreate?: () => void; onLesson?: (id: string) => void; onTrack?: (id: ExpansionLabId) => void;
 };
 
-export function CourseLibrary({ courses, hydrated, storageError, onOpen, onRemove, onCreate, onLesson, onTrack }: LibraryProps) {
+export function CourseLibrary({ courses, now, hydrated, storageError, onOpen, onRemove, onCreate, onLesson, onTrack }: LibraryProps) {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<SourceKind | "all">("all");
   const filtered = filterSourceCourses(courses, query, kind);
   return <div className="course-library">
     <section aria-labelledby="saved-library-title">
-      <div className="library-section-title"><div><h2 id="saved-library-title">Nguồn của tôi</h2><p>Các khóa học lưu trên thiết bị này{hydrated && !storageError ? ` · ${courses.length} khóa` : ""}.</p></div>{onCreate ? <button className="studio-button" onClick={onCreate}>+ Tạo khóa học</button> : null}</div>
-      <div className="library-filters"><label>Tìm khóa học hoặc tên nguồn<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm trong nguồn đã lưu…" /></label><label>Loại nguồn<select value={kind} onChange={(event) => setKind(event.target.value as SourceKind | "all")}><option value="all">Tất cả nguồn</option>{Object.entries(sourceKindLabels).map(([id,label]) => <option key={id} value={id}>{label}</option>)}</select></label></div>
-      {!hydrated ? <p className="library-state" role="status">Đang mở thư viện trên thiết bị…</p> : storageError ? <p className="library-state" role="alert">{storageError}</p> : !courses.length ? <div className="library-state"><h3>Chỗ cho ý tưởng tiếp theo của ông.</h3><p>Thêm một chương sách, bài viết hoặc transcript. Ông sẽ duyệt từng bài trước khi lưu.</p>{onCreate ? <button className="studio-extract" onClick={onCreate}>Tạo khóa học đầu tiên →</button> : null}</div> : !filtered.length ? <div className="library-state" role="status"><h3>Chưa tìm thấy khóa phù hợp.</h3><p>Thử tên nguồn khác hoặc bỏ bộ lọc.</p><button className="studio-extract" onClick={() => { setQuery(""); setKind("all"); }}>Xóa bộ lọc</button></div> : <><p className="library-result-count" role="status">{filtered.length} khóa phù hợp</p><div className="library-grid">{filtered.map((course) => {
+      <div className="library-section-title"><div><h2 id="saved-library-title">Nguồn của tôi</h2><p>Các khóa học lưu trên thiết bị này{hydrated && !storageError ? ` · ${courses.length} khóa` : ""}.</p></div>{onCreate && courses.length > 0 ? <button className="studio-button" onClick={onCreate}>+ Tạo khóa học</button> : null}</div>
+      {courses.length > 0 && <div className="library-filters"><label>Tìm khóa học hoặc tên nguồn<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm trong nguồn đã lưu…" /></label><label>Loại nguồn<select value={kind} onChange={(event) => setKind(event.target.value as SourceKind | "all")}><option value="all">Tất cả nguồn</option>{Object.entries(sourceKindLabels).map(([id,label]) => <option key={id} value={id}>{label}</option>)}</select></label></div>}
+      {!hydrated ? <p className="library-state" role="status">Đang mở thư viện trên thiết bị…</p> : storageError ? <p className="library-state" role="alert">{storageError}</p> : !courses.length ? <div className="library-state"><h3>Tạo khóa học đầu tiên từ tài liệu của ông.</h3><p>Thêm một chương sách, bài viết hoặc transcript. Ông sẽ duyệt từng bài trước khi lưu.</p>{onCreate ? <button className="studio-extract" onClick={onCreate}>Tạo khóa học đầu tiên →</button> : null}</div> : !filtered.length ? <div className="library-state" role="status"><h3>Chưa tìm thấy khóa phù hợp.</h3><p>Thử tên nguồn khác hoặc bỏ bộ lọc.</p><button className="studio-extract" onClick={() => { setQuery(""); setKind("all"); }}>Xóa bộ lọc</button></div> : <><p className="library-result-count" role="status">{filtered.length} khóa phù hợp</p><div className="library-grid">{filtered.map((course) => {
         const progress = sourceCourseProgress(course);
-        return <article className="library-card" key={course.id}><SubjectCover kind={course.kind} label={sourceKindLabels[course.kind]} /><div className="library-card-body"><h3>{course.title}</h3><p className="library-provenance">Nguồn: {course.sourceName}</p><p>{progress.total} bài · {progress.completed} bài đã học</p><progress max={progress.total} value={progress.completed} aria-label={`${course.title}: ${progress.completed}/${progress.total} bài đã học`} /><div className="library-card-actions"><button className="studio-button" onClick={() => onOpen(course)}>Mở khóa học →</button><button className="library-remove" onClick={() => onRemove(course)} aria-label={`Xóa khóa học ${course.title}`}>Xóa</button></div></div></article>;
+        const due = course.lessons.findIndex((lesson) => lesson.completedAt && lesson.reviewDueAt && !lesson.reviewedAt && Date.parse(lesson.reviewDueAt) <= now);
+        const next = course.lessons.findIndex((lesson) => !lesson.completedAt);
+        const index = due >= 0 ? due : Math.max(next, 0);
+        const action = due >= 0 ? "Ôn bài đến hạn" : next < 0 ? "Xem lại khóa học" : progress.completed ? "Tiếp tục học" : "Bắt đầu học";
+        return <article className="library-card saved-course-card" key={course.id}><SubjectCover kind={course.kind} label={sourceKindLabels[course.kind]} /><div className="library-card-body"><h3>{course.title}</h3><p className="library-provenance">Nguồn: {course.sourceName}</p><p>{progress.completed}/{progress.total} bài đã học{due >= 0 ? " · Đến hạn ôn" : ""}</p><progress max={progress.total} value={progress.completed} aria-label={`${course.title}: ${progress.completed}/${progress.total} bài đã học`} /><div className="library-card-actions"><button className="studio-button" aria-label={`${action}: ${course.title}`} onClick={() => onOpen(course, index)}>{action} →</button><button className="library-remove" onClick={() => onRemove(course)} aria-label={`Xóa khóa học ${course.title}`}>Xóa</button></div></div></article>;
       })}</div></>}
     </section>
     <section className="curated-library" aria-labelledby="curated-library-title"><div className="library-section-title"><div><h2 id="curated-library-title">Lộ trình nền tảng AI & Data</h2><p>Bài học có sẵn · thực hành, dẫn chứng và điều kiện mở bài theo từng lộ trình.</p></div></div><div className="library-grid curated-grid">

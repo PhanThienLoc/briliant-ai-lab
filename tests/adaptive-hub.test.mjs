@@ -7,7 +7,7 @@ const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 test("Today Session exposes dynamic budget, reasons, evidence, and semantic progress", async () => {
   const source = await read("../components/learning/today-session.tsx");
 
-  assert.match(source, /TODAY \/ \{queue\.budgetMinutes\} PHÚT/);
+  assert.match(source, /\{queue\.totalMinutes\} \/ \{queue\.budgetMinutes\} phút dự kiến/);
   assert.match(source, /Vì sao chọn bài này/);
   assert.match(source, /item\.reason/);
   assert.match(source, /item\.evidenceNeeded/);
@@ -18,8 +18,8 @@ test("Today Session exposes dynamic budget, reasons, evidence, and semantic prog
 test("reflection actions stay readable and never open a null target", async () => {
   const source = await read("../components/learning/today-session.tsx");
 
-  assert.match(source, /disabled=\{!item\.target\}/);
-  assert.match(source, /item\.target && onOpen\(item\)/);
+  assert.match(source, /item\.target \? "button" : "div"/);
+  assert.match(source, /onClick=\{item\.target \? \(\) => onOpen\(item\) : undefined\}/);
 });
 
 test("Mastery Summary names every actionable state and counts only locked concepts", async () => {

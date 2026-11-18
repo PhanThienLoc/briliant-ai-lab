@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { buildSourceCourse, completeSourceLesson, finalizeSourceDraft, MAX_SOURCE_CHARS, parseSourceCourses, SOURCE_COURSES_KEY, type SourceCourse, type SourceKind } from "../lib/source-course";
+import { buildSourceCourse, completeSourceLesson, finalizeSourceDraft, MIN_SOURCE_CHARS, MAX_SOURCE_CHARS, normalizeSourceText, parseSourceCourses, SOURCE_COURSES_KEY, type SourceCourse, type SourceKind } from "../lib/source-course";
 import { sourcePdfError } from "../lib/pdf-error";
 import { MAX_PDF_PAGES, resolvePdfPageRange } from "../lib/pdf-page-range";
 
@@ -59,6 +59,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
   const [sourceName, setSourceName] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [text, setText] = useState("");
+  const contentLength = normalizeSourceText(text).length;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [firstPage, setFirstPage] = useState("1");
   const [lastPage, setLastPage] = useState("");
@@ -107,10 +108,25 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     });
   }, [hydrated, mode, navigationId, initialCourseId, initialLessonId, libraryRevision]);
 
+  useEffect(() => {
+    if (!visible || mode !== "library" || activeId || !courses.length) return;
+    const timer = window.setInterval(() => setNow(currentTime()), 60_000);
+    return () => window.clearInterval(timer);
+  }, [visible, mode, activeId, courses.length]);
+
   const active = courses.find((course) => course.id === activeId);
   const lesson = active?.lessons[lessonIndex];
   const isReview = Boolean(lesson?.completedAt && lesson.reviewDueAt && Date.parse(lesson.reviewDueAt) <= now && !lesson.reviewedAt);
+  const answerLocked = feedback === "correct" || (Boolean(lesson?.completedAt) && !isReview);
+  const showReviewQuestion = isReview || (feedback === "correct" && Boolean(lesson?.reviewedAt));
   const completed = active?.lessons.filter((item) => item.completedAt).length ?? 0;
+  const draftHeading = useRef<HTMLHeadingElement>(null);
+  const pendingDraftFocus = useRef(false);
+  useEffect(() => {
+    if (!draft || !visible || mode !== "create" || !pendingDraftFocus.current) return;
+    pendingDraftFocus.current = false;
+    draftHeading.current?.focus();
+  }, [draft, visible, mode]);
   const readerHeading = useRef<HTMLHeadingElement>(null);
   const studioHeading = useRef<HTMLHeadingElement>(null);
   const readerWasOpen = useRef(false);
@@ -158,6 +174,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     try {
       if (sourceUrl && !/^https?:\/\/\S+$/i.test(sourceUrl)) throw new Error("Liên kết nguồn cần bắt đầu bằng http:// hoặc https://.");
       const course = buildSourceCourse({ title, kind, text, sourceName: sourceName || sourceUrl || "Nguồn do người học cung cấp", sourceUrl });
+      pendingDraftFocus.current = true;
       setDraft(course); setSelectedIds(course.lessons.map((item) => item.id)); setEdits({});
       setMessage("Bản nháp chưa lưu. Xem từng đoạn, chỉnh mục tiêu và chọn ít nhất 2 bài trong phần duyệt bản nháp.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Chưa thể tạo khóa học."); }
@@ -200,7 +217,12 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     <header className="studio-heading"><div><span className="studio-eyebrow">{mode === "library" ? "HỌC TỪ NGUỒN · TRÊN THIẾT BỊ NÀY" : "TỪ NGUỒN ĐẾN HIỂU BIẾT"}</span><h1 ref={studioHeading} tabIndex={-1}>{mode === "library" ? "Thư viện của ông" : "Tạo khóa học"}</h1><p>{mode === "library" ? "Tiếp tục một khóa đã lưu hoặc khám phá các lộ trình AI & Data." : "Chọn nguồn, xem lại từng bài và lưu một lộ trình có dẫn chứng."}</p></div>{mode === "create" && onLibrary ? <button className="studio-extract" onClick={onLibrary}>Mở thư viện →</button> : null}</header>
     {message ? <p className="studio-message" role="status">{message}</p> : null}
     {missingTarget && mode === "library" ? <p className="studio-message" role="alert">{missingTarget}</p> : null}
-    {mode === "library" && !active ? <CourseLibrary courses={courses} hydrated={hydrated} storageError={storageError} onOpen={chooseCourse} onRemove={removeCourse} onCreate={onCreate} onLesson={onLesson} onTrack={onTrack} /> : null}
+    {mode === "library" && !active ? <CourseLibrary courses={courses} now={now} hydrated={hydrated} storageError={storageError} onOpen={chooseCourse} onRemove={removeCourse} onCreate={onCreate} onLesson={onLesson} onTrack={onTrack} /> : null}
+    {mode === "create" && <ol className="studio-flow" aria-label="Quy trình tạo khóa học">
+      <li aria-current={!draft ? "step" : undefined}><b>01</b> Thêm nguồn</li>
+      <li aria-current={draft ? "step" : undefined}><b>02</b> Duyệt bản nháp</li>
+      <li><b>03</b> Lưu vào thư viện</li>
+    </ol>}
     <div className="studio-layout create-layout" hidden={mode !== "create"} inert={mode !== "create"} style={mode !== "create" ? { display: "none" } : undefined}>
       <section className="studio-form" aria-labelledby="studio-form-heading">
         <div className="studio-section-head"><span>BƯỚC 1 · CHỌN NGUỒN</span><h2 id="studio-form-heading">Ông muốn học từ đâu?</h2></div>
@@ -210,13 +232,14 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
         {selectedFile && /\.pdf$/i.test(selectedFile.name) ? <div className="studio-two"><label>Trang bắt đầu<input type="number" min="1" step="1" value={firstPage} onChange={(event) => { setFirstPage(event.target.value); setNeedsExtract(true); setText(""); }} /></label><label>Trang kết thúc (để trống: tối đa {MAX_PDF_PAGES} trang)<input type="number" min="1" step="1" value={lastPage} onChange={(event) => { setLastPage(event.target.value); setNeedsExtract(true); setText(""); }} /></label></div> : null}
         {selectedFile ? <button className="studio-extract" type="button" onClick={() => void extractFile()} disabled={busy}>{busy ? "Đang trích xuất…" : "Trích xuất tệp →"}</button> : null}
         <div className="studio-two"><label>Tên nguồn<input value={sourceName} onChange={(event) => setSourceName(event.target.value)} placeholder="Tác giả, tên sách hoặc video" maxLength={160} /></label><label>Liên kết gốc (tùy chọn)<input type="url" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder="https://..." /></label></div>
-        <label>Nội dung để học<textarea value={text} onChange={(event) => { setText(event.target.value); setNeedsExtract(false); }} placeholder={kind === "video" ? "Dán transcript của video vào đây..." : "Dán văn bản từ nguồn vào đây hoặc trích xuất tệp ở trên..."} rows={8} maxLength={MAX_SOURCE_CHARS + 1} /></label>
-        <div className="studio-form-foot"><span>{text.length.toLocaleString("vi-VN")} / {MAX_SOURCE_CHARS.toLocaleString("vi-VN")} ký tự</span><button className="studio-button" onClick={create} disabled={busy || needsExtract || text.length < 400}>{busy ? "Đang đọc…" : "Xem bản nháp →"}</button></div>
+        <label>Nội dung để học<textarea aria-describedby="studio-source-help" value={text} onChange={(event) => { setText(event.target.value); setNeedsExtract(false); }} placeholder={kind === "video" ? "Dán transcript của video vào đây..." : "Dán văn bản từ nguồn vào đây hoặc trích xuất tệp ở trên..."} rows={8} maxLength={MAX_SOURCE_CHARS + 1} /></label>
+        <p id="studio-source-help" className="studio-source-help">{needsExtract ? "Trích xuất tệp trước hoặc dán văn bản để tiếp tục." : contentLength < MIN_SOURCE_CHARS ? `Thêm ít nhất ${MIN_SOURCE_CHARS - contentLength} ký tự nội dung để xem bản nháp.` : contentLength > MAX_SOURCE_CHARS ? "Nguồn quá dài. Hãy chia thành các phần nhỏ hơn." : "Đã đủ độ dài. Hãy xem bản nháp để kiểm tra từng đoạn nguồn."}</p>
+        <div className="studio-form-foot"><span>{contentLength.toLocaleString("vi-VN")} / {MAX_SOURCE_CHARS.toLocaleString("vi-VN")} ký tự</span><button className="studio-button" aria-describedby="studio-source-help" onClick={create} disabled={busy || needsExtract || contentLength < MIN_SOURCE_CHARS || contentLength > MAX_SOURCE_CHARS}>{busy ? "Đang đọc…" : "Xem bản nháp →"}</button></div>
         <p className="studio-disclosure">Nguồn và khóa học được xử lý trên thiết bị này. PDF có lớp chữ cho chọn tối đa 60 trang mỗi lượt (tệp tối đa 30 MB), khóa học lấy mẫu tối đa 6 đoạn và không bao phủ toàn bộ sách. Markdown chia theo tiêu đề mục; SRT/VTT giữ mốc thời gian của đoạn được chọn. Liên kết chỉ lưu để dẫn nguồn; URL không tự tải nội dung. Video cần transcript; PDF scan cần OCR hoặc dán văn bản. Hãy kiểm tra câu hỏi và bản quyền nguồn trước khi dùng.</p>
         {storageError ? <p className="studio-message" role="alert">{storageError}</p> : null}
       </section>
     {draft ? <section className="studio-draft" aria-labelledby="studio-draft-title">
-      <header><span className="studio-eyebrow">DUYỆT TRƯỚC KHI LƯU · CHƯA LƯU</span><h2 id="studio-draft-title">Duyệt bản nháp</h2><label>Tên khóa học trong bản nháp<input value={draft.title} maxLength={100} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label><p>{selectedIds.length}/{draft.lessons.length} bài được chọn · {draft.sourceName}</p><p>Đây là các đoạn mẫu từ nguồn, chưa phải khóa học bao phủ toàn bộ tài liệu. Chọn bài hữu ích và viết mục tiêu ông muốn tự giải thích được.</p></header>
+      <header><span className="studio-eyebrow">DUYỆT TRƯỚC KHI LƯU · CHƯA LƯU</span><h2 id="studio-draft-title" ref={draftHeading} tabIndex={-1}>Duyệt bản nháp</h2><label>Tên khóa học trong bản nháp<input value={draft.title} maxLength={100} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label><p>{selectedIds.length}/{draft.lessons.length} bài được chọn · {draft.sourceName}</p><p>Đây là các đoạn mẫu từ nguồn, chưa phải khóa học bao phủ toàn bộ tài liệu. Chọn bài hữu ích và viết mục tiêu ông muốn tự giải thích được.</p></header>
       <div className="studio-draft-list">{draft.lessons.map((item, index) => {
         const edit = edits[item.id] ?? { title: item.title, objective: item.objective };
         return <article key={item.id} className={selectedIds.includes(item.id) ? "included" : ""}>
@@ -227,8 +250,38 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
         </article>;
       })}</div>
       <footer><span>Bản nháp được giữ khi chuyển mục trong ứng dụng, nhưng sẽ mất nếu tải lại hoặc đóng trang. Thư viện cũ chỉ thay đổi khi lưu thành công.</span><button className="studio-extract" onClick={() => setDraft(null)}>Bỏ bản nháp</button><button className="studio-button" disabled={!hydrated || Boolean(storageError) || selectedIds.length < 2 || !draft.title.trim()} onClick={saveDraft}>Lưu {selectedIds.length} bài vào thư viện →</button></footer>
-    </section> : <aside className="studio-preview-empty"><span className="studio-eyebrow">BƯỚC 2 · DUYỆT & LƯU</span><h2>Bản nháp xuất hiện ở đây</h2><p>Thêm nội dung nguồn rồi chọn “Xem bản nháp”. Ông có thể sửa tên, mục tiêu và chọn ít nhất 2 bài để lưu.</p><div className="draft-steps"><p><b>01</b> Đối chiếu đoạn trích và câu hỏi</p><p><b>02</b> Viết mục tiêu tự giải thích</p><p><b>03</b> Lưu khi đã sẵn sàng</p></div><p className="studio-disclosure">Xử lý cục bộ, lấy mẫu tối đa 6 đoạn. Các mục tiêu do ông viết chưa được chấm tự động.</p></aside>}
+    </section> : <aside className="studio-preview-empty"><span className="studio-eyebrow">BƯỚC 2 · DUYỆT & LƯU</span><h2>Bản nháp xuất hiện ở đây</h2><p>Thêm nội dung nguồn rồi chọn “Xem bản nháp”. Ông có thể sửa tên, mục tiêu và chọn ít nhất 2 bài để lưu.</p><p className="studio-disclosure">Mỗi bài có một đoạn trích để ông đối chiếu trước khi lưu.</p></aside>}
     </div>
-    {mode === "library" && active && lesson ? <section className="studio-reader" aria-labelledby="studio-course-heading"><button className="back-link" onClick={() => { setActiveId(null); setChoice(null); setFeedback(null); }}>← Tất cả khóa học</button><div className="studio-reader-head"><div><span className="studio-eyebrow">03 / HỌC TỪ NGUỒN</span><h2 id="studio-course-heading">{active.title}</h2><p>{completed}/{active.lessons.length} bài đã học · Nguồn: {active.sourceName}</p></div>{active.sourceUrl ? <a href={active.sourceUrl} target="_blank" rel="noopener noreferrer">Mở nguồn ↗</a> : null}</div><div className="studio-lesson-tabs" role="group" aria-label="Chọn bài học">{active.lessons.map((item, index) => <button key={item.id} className={lessonIndex === index ? "active" : ""} onClick={() => chooseCourse(active, index)} aria-current={lessonIndex === index ? "step" : undefined}><span>{String(index + 1).padStart(2, "0")}</span><strong>{item.title}</strong>{item.reviewedAt ? <small>Đã ôn</small> : item.completedAt ? <small>Đã học</small> : null}</button>)}</div><article className="studio-lesson"><div className="studio-lesson-meta"><span>BÀI {lessonIndex + 1} / {active.lessons.length}</span><span>{isReview ? "ÔN ĐẾN HẠN" : lesson.completedAt ? "ĐÃ HỌC" : "ĐANG HỌC"}</span></div><h3 ref={readerHeading} tabIndex={-1}>{lesson.title}</h3><p>{lesson.objective}</p><blockquote><span>TRÍCH ĐOẠN NGUỒN · {lesson.sourceLocation}</span>{lesson.excerpt}</blockquote><div className="studio-question"><h4>{isReview ? "Bài biến thể đến hạn" : "Kiểm tra hiểu"}</h4><p>{isReview ? "Trong phần nguồn này, kết luận hoặc hệ quả nào được nêu?" : lesson.question}</p><div className="studio-options">{(isReview ? lesson.reviewOptions : lesson.options).map((option, index) => <button key={`${lesson.id}-${index}`} onClick={() => { setChoice(index); setFeedback(null); }} aria-pressed={choice === index} className={choice === index ? "selected" : ""}><b>{String.fromCharCode(65 + index)}</b>{option}</button>)}</div><div className="studio-answer"><button className="studio-button" disabled={choice === null || feedback === "correct" || (Boolean(lesson.completedAt) && !isReview)} onClick={submit}>{feedback === "correct" ? "Đã lưu ✓" : isReview ? "Nộp bài ôn" : "Kiểm tra đáp án"}</button>{feedback === "retry" ? <p role="status">Chưa khớp đoạn nguồn. Đọc lại phần trích và thử đáp án khác.</p> : feedback === "correct" ? <p role="status">Đúng theo nguồn. {lesson.reviewedAt ? "Đã ghi nhận lần ôn." : "Lịch ôn được mở sau 72 giờ."}</p> : lesson.completedAt && !isReview ? <p>{lesson.reviewedAt ? "Đã hoàn thành lần ôn." : `Ôn sau ${new Date(lesson.reviewDueAt!).toLocaleString("vi-VN")}.`}</p> : null}</div></div></article></section> : null}
+    {mode === "library" && active && lesson ? <section className="studio-reader" aria-labelledby="studio-course-heading">
+      <button className="back-link" onClick={() => { setActiveId(null); setChoice(null); setFeedback(null); }}>← Tất cả khóa học</button>
+      <div className="studio-reader-head">
+        <div><span className="studio-eyebrow">{kindLabels[active.kind]}</span><h2 id="studio-course-heading">{active.title}</h2>
+          <p>{completed}/{active.lessons.length} bài đã học · Nguồn: {active.sourceName}</p></div>
+        {active.sourceUrl ? <a href={active.sourceUrl} target="_blank" rel="noopener noreferrer">Mở nguồn gốc ↗</a> : null}
+      </div>
+      <div className="reader-workspace">
+        <div className="studio-lesson-tabs" role="group" aria-label="Chọn bài học">
+          {active.lessons.map((item, index) => <button key={item.id} className={lessonIndex === index ? "active" : ""} onClick={() => chooseCourse(active, index)} aria-current={lessonIndex === index ? "step" : undefined}>
+            <span>Bài {index + 1}</span><strong>{item.title}</strong>
+            {item.reviewedAt ? <small>Đã ôn</small> : item.completedAt ? <small>Đã học</small> : null}
+          </button>)}
+        </div>
+        <article className="studio-lesson">
+          <div className="studio-lesson-meta"><span>BÀI {lessonIndex + 1} / {active.lessons.length}</span><span>{isReview ? "ÔN ĐẾN HẠN" : lesson.reviewedAt ? "ĐÃ ÔN" : lesson.completedAt ? "ĐÃ HỌC" : "ĐANG HỌC"}</span></div>
+          <h3 ref={readerHeading} tabIndex={-1}>{lesson.title}</h3><p>{lesson.objective}</p>
+          <blockquote><span>TRÍCH ĐOẠN NGUỒN · {lesson.sourceLocation}</span>{lesson.excerpt}</blockquote>
+          <div className="studio-question"><h4>{showReviewQuestion ? "Bài ôn theo nguồn" : "Kiểm tra hiểu"}</h4>
+            <p>{showReviewQuestion ? "Trong phần nguồn này, kết luận hoặc hệ quả nào được nêu?" : lesson.question}</p>
+            <div className="studio-options">{(showReviewQuestion ? lesson.reviewOptions : lesson.options).map((option, index) =>
+              <button key={`${lesson.id}-${index}`} disabled={answerLocked} onClick={() => { setChoice(index); setFeedback(null); }} aria-pressed={choice === index} className={choice === index ? "selected" : ""}>
+                <b>{String.fromCharCode(65 + index)}</b>{option}
+              </button>)}</div>
+            <div className="studio-answer"><button className="studio-button" disabled={choice === null || answerLocked} onClick={submit}>{feedback === "correct" ? "Đã lưu ✓" : isReview ? "Nộp bài ôn" : "Kiểm tra đáp án"}</button>
+              {feedback === "retry" ? <p role="status">Chưa khớp đoạn nguồn. Đọc lại phần trích và thử đáp án khác.</p> : feedback === "correct" ? <p role="status">Đúng theo nguồn. {lesson.reviewedAt ? "Đã ghi nhận lần ôn." : "Lịch ôn được mở sau 72 giờ."}</p> : lesson.completedAt && !isReview ? <p>{lesson.reviewedAt ? "Đã hoàn thành lần ôn." : `Ôn sau ${new Date(lesson.reviewDueAt!).toLocaleString("vi-VN")}.`}</p> : null}
+            </div>
+          </div>
+        </article>
+      </div>
+    </section> : null}
   </div>;
 }

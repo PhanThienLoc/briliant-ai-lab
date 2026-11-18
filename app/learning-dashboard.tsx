@@ -488,8 +488,8 @@ function DataLensLab({ lessonId }: { lessonId: string }) {
         {Array.from({ length: 100 }, (_, index) => <i key={index} className={index < reliable ? "reliable" : index < observed ? "noisy" : "missing"} />)}
       </div>
       <div className="lab-controls two-controls">
-        <label><span>Missing rows <output>{missing}%</output></span><input type="range" min="0" max="60" value={missing} onChange={(event) => setMissing(Number(event.target.value))} /></label>
-        <label><span>Label noise <output>{noise}%</output></span><input type="range" min="0" max="60" value={noise} onChange={(event) => setNoise(Number(event.target.value))} /></label>
+        <label htmlFor="r0-missing"><span>Missing rows <output>{missing}%</output></span><input id="r0-missing" type="range" min="0" max="60" value={missing} onChange={(event) => setMissing(Number(event.target.value))} /></label>
+        <label htmlFor="r0-noise"><span>Label noise <output>{noise}%</output></span><input id="r0-noise" type="range" min="0" max="60" value={noise} onChange={(event) => setNoise(Number(event.target.value))} /></label>
       </div>
       <div className="representation-strip"><span><i className="reliable" />Signal {reliable}</span><span><i className="noisy" />Nhiễu {observed - reliable}</span><span><i className="missing" />Thiếu {missing}</span></div>
       <p className="guided-discovery"><strong>Câu hỏi dẫn đường:</strong> {question}</p>
@@ -516,9 +516,9 @@ function FunctionMachine() {
         <circle className="focus-point" cx={140 + input * 20} cy={65 - output * 8} r="6" />
       </svg>
       <div className="lab-controls three-controls">
-        <label><span>Input x <output>{input.toFixed(1)}</output></span><input type="range" min="-4" max="4" step="0.5" value={input} onChange={(event) => setInput(Number(event.target.value))} /></label>
-        <label><span>Scale a <output>{scale.toFixed(1)}</output></span><input type="range" min="-2" max="3" step="0.5" value={scale} onChange={(event) => setScale(Number(event.target.value))} /></label>
-        <label><span>Bias b <output>{bias.toFixed(1)}</output></span><input type="range" min="-3" max="3" step="0.5" value={bias} onChange={(event) => setBias(Number(event.target.value))} /></label>
+        <label htmlFor="r0-input"><span>Input x <output>{input.toFixed(1)}</output></span><input id="r0-input" type="range" min="-4" max="4" step="0.5" value={input} onChange={(event) => setInput(Number(event.target.value))} /></label>
+        <label htmlFor="r0-scale"><span>Scale a <output>{scale.toFixed(1)}</output></span><input id="r0-scale" type="range" min="-2" max="3" step="0.5" value={scale} onChange={(event) => setScale(Number(event.target.value))} /></label>
+        <label htmlFor="r0-bias"><span>Bias b <output>{bias.toFixed(1)}</output></span><input id="r0-bias" type="range" min="-3" max="3" step="0.5" value={bias} onChange={(event) => setBias(Number(event.target.value))} /></label>
       </div>
       <p className="guided-discovery"><strong>Thử thách:</strong> giữ output không đổi trong khi thay input. Ông phải bù bằng scale hay bias như thế nào?</p>
     </section>
@@ -543,8 +543,8 @@ function ErrorLab({ mode }: { mode: "residual" | "mse" }) {
       </svg>
       <div className="residual-row">{residuals.map((value, index) => <div key={index}><span>r{index + 1}</span><i style={{ height: `${Math.min(56, Math.abs(value) * 25 + 3)}px` }} /><strong>{value.toFixed(1)}</strong></div>)}</div>
       <div className="lab-controls two-controls">
-        <label><span>Slope w <output>{slope.toFixed(1)}</output></span><input type="range" min="0" max="1.6" step="0.1" value={slope} onChange={(event) => setSlope(Number(event.target.value))} /></label>
-        <label><span>Intercept b <output>{intercept.toFixed(1)}</output></span><input type="range" min="-1" max="3" step="0.1" value={intercept} onChange={(event) => setIntercept(Number(event.target.value))} /></label>
+        <label htmlFor="r0-slope"><span>Slope w <output>{slope.toFixed(1)}</output></span><input id="r0-slope" type="range" min="0" max="1.6" step="0.1" value={slope} onChange={(event) => setSlope(Number(event.target.value))} /></label>
+        <label htmlFor="r0-intercept"><span>Intercept b <output>{intercept.toFixed(1)}</output></span><input id="r0-intercept" type="range" min="-1" max="3" step="0.1" value={intercept} onChange={(event) => setIntercept(Number(event.target.value))} /></label>
       </div>
       <p className="guided-discovery"><strong>Thử thách:</strong> hạ MSE xuống dưới 0.35. Residual lớn bị bình phương nên tác động mạnh đến mức nào?</p>
     </section>
@@ -569,7 +569,7 @@ function GradientLab({ lessonId }: { lessonId: string }) {
         {positions.map((x, index) => <g key={index}><circle className={index === positions.length - 1 ? "current-step" : "past-step"} cx={135 + Math.max(-5, Math.min(5, x)) * 22} cy={150 - Math.min(25, x * x) * 5} r={index === positions.length - 1 ? 6 : 3} /><text x={135 + Math.max(-5, Math.min(5, x)) * 22 + 6} y={145 - Math.min(25, x * x) * 5}>{index}</text></g>)}
       </svg>
       <div className="gradient-equation"><span>x ← x − η · 2x</span><strong>x = {current.toFixed(3)}</strong><small>loss = {(current * current).toFixed(3)}</small></div>
-      <div className="lab-controls"><label><span>Learning rate η <output>{learningRate.toFixed(2)}</output></span><input type="range" min="0.05" max="1.2" step="0.05" value={learningRate} onChange={(event) => setLearningRate(Number(event.target.value))} /></label></div>
+      <div className="lab-controls"><label htmlFor="r0-learningRate"><span>Learning rate η <output>{learningRate.toFixed(2)}</output></span><input id="r0-learningRate" type="range" min="0.05" max="1.2" step="0.05" value={learningRate} onChange={(event) => setLearningRate(Number(event.target.value))} /></label></div>
       <div className="step-actions"><button className="outline-action" onClick={() => setSteps(0)}>Reset</button><button className="primary-action" onClick={() => setSteps((value) => Math.min(12, value + 1))}>Đi thêm 1 bước →</button></div>
       <p className="guided-discovery"><strong>Thử thách:</strong> tìm learning rate hội tụ nhanh nhưng không bật qua lại. Sau đó kéo η vượt 1 để thấy cơ chế phân kỳ.</p>
     </section>
@@ -597,7 +597,7 @@ function ValidationLab() {
         <circle className="validation-point" cx={25 + complexity * 22} cy={145 - selected.validation * 1.2} r="5" />
       </svg>
       <div className="curve-legend"><span><i className="train" />Train error {selected.train}%</span><span><i className="validation" />Validation error {selected.validation}%</span><strong>Gap {Math.abs(selected.validation - selected.train)} điểm</strong></div>
-      <div className="lab-controls"><label><span>Model complexity <output>{complexity}/10</output></span><input type="range" min="1" max="10" value={complexity} onChange={(event) => setComplexity(Number(event.target.value))} /></label></div>
+      <div className="lab-controls"><label htmlFor="r0-complexity"><span>Model complexity <output>{complexity}/10</output></span><input id="r0-complexity" type="range" min="1" max="10" value={complexity} onChange={(event) => setComplexity(Number(event.target.value))} /></label></div>
       <p className="guided-discovery"><strong>Thử thách:</strong> tìm vùng validation error thấp nhất. Vì sao train error vẫn giảm khi model bắt đầu overfit?</p>
     </section>
   );
@@ -837,8 +837,8 @@ function SocraticLab({ lessonId, targetActivityId, initialMode, repairItem, retu
     }
     setPythonRun(result);
     const message = result.passed
-      ? `${stage.success} ${result.tests.length}/${result.tests.length} hidden tests passed.`
-      : result.error ?? `${stage.retry} ${result.tests.filter((test) => test.passed).length}/${result.tests.length} hidden tests passed.`;
+      ? `${stage.success} ${result.tests.length}/${result.tests.length} kiểm thử đạt.`
+      : result.error ?? `${stage.retry} ${result.tests.filter((test) => test.passed).length}/${result.tests.length} kiểm thử đạt.`;
     const codeOutcome = result.passed
       ? "pass"
       : result.error?.includes("TimeLimitExceeded")
@@ -972,7 +972,7 @@ function SocraticLab({ lessonId, targetActivityId, initialMode, repairItem, retu
 
   return (
     <div className="lab-screen">
-      <header className="lab-topbar"><button className="back-link" onClick={onClose}>← {returnLabel}</button><div><span>{workspaceMode}</span><strong>{progress.completed.length}/{lesson.activities.length} hoạt động đạt</strong></div><span className="lab-count">{lessonEvidenceScore(progress, lesson.activities.length, lesson.activities.map((activity) => activity.id))}% evidence</span></header>
+      <header className="lab-topbar"><button className="back-link" onClick={onClose}>← {returnLabel}</button><div><span>{workspaceMode}</span><strong>{progress.completed.length}/{lesson.activities.length} hoạt động đạt</strong></div><span className="lab-count">{lessonEvidenceScore(progress, lesson.activities.length, lesson.activities.map((activity) => activity.id))}% bằng chứng</span></header>
       <div className="lab-columns">
         <details ref={outlineRef} className="workspace-outline" open>
           <summary>Nội dung bài học <span>{progress.completed.length}/{lesson.activities.length}</span></summary>
@@ -986,23 +986,23 @@ function SocraticLab({ lessonId, targetActivityId, initialMode, repairItem, retu
               })}
             </nav>
             <div className={reviewing ? "outline-review active" : "outline-review"} aria-current={reviewing ? "step" : undefined}><strong>Ôn tập sau 72 giờ</strong><small>{currentMastery === "mastered" ? "Đã xác minh độc lập" : reviewing ? "Đến hạn · đang ôn" : lessonComplete && standardIndependent ? `Mở sau ${reviewHours ?? 72} giờ` : "Cần đủ thực hành độc lập"}</small></div>
-            <p className="outline-note">Mỗi bước mở từ bằng chứng thật. Gợi ý được ghi lại; mastery cần bài ôn độc lập.</p>
+            <p className="outline-note">Hoàn thành từng bước để mở bước tiếp theo. Sau phần thực hành độc lập, ông sẽ có bài ôn sau 72 giờ.</p>
           </div>
         </details>
         <section className="inquiry-column" aria-labelledby="workspace-title">
           <header className="column-header"><div><p>{workspaceMode} · {reviewing ? "Biến thể độc lập" : `Hoạt động ${progress.currentIndex + 1} / ${lesson.activities.length}`}</p><h1 ref={workspaceHeading} tabIndex={-1} id="workspace-title">{lesson.title}</h1></div></header>
-          {showActivity ? <article className="activity-brief workspace-question"><span className="mono-label indigo-text">{stage.eyebrow}</span><h2 ref={activityHeading} tabIndex={-1}>{stage.prompt}</h2><p>Bằng chứng cần thu: {stage.evidence}</p></article> : null}
+          {showActivity ? <article className="activity-brief workspace-question"><span className="mono-label indigo-text">{stage.label}</span><h2 ref={activityHeading} tabIndex={-1}>{stage.prompt}</h2><p><strong>Mục tiêu:</strong> {stage.evidence}</p></article> : null}
           <div className="workspace-instrument"><ConceptInstrument lesson={lesson} /></div>
           <div className="conversation">
             {storageWarning ? <p role="status">{storageWarning}</p> : null}
             {retryActivityId === null ? lesson.activities.map((activity, index) => progress.completed.includes(activity.id) && (progress.activityEvidence[activity.id]?.hintsUsed ?? progress.hintLevels[activity.id] ?? 0) > 0 && !progress.activityEvidence[activity.id]?.independentAt ? <button key={`retry-${activity.id}`} className="outline-action" onClick={() => retryIndependently(index)}>Làm lại độc lập: {activity.label}</button> : null) : null}
             {lessonComplete && stageComplete && currentMastery === "review_due" ? (
               <section className="delayed-review">
-                <span className="mono-label indigo-text">DELAYED TRANSFER · ≥72 HOURS</span>
+                <span className="mono-label indigo-text">ÔN TẬP ĐỘC LẬP · SAU 72 GIỜ</span>
                 <h2 ref={activityHeading} tabIndex={-1}>{reviewActivity.prompt}</h2>
-                <p>Không dùng hint. Mastered chỉ mở khi recall đúng và bài code đã từng vượt test ở chế độ tự viết.</p>
+                <p>Tự trả lời mà không dùng gợi ý. Để xác nhận đã nắm vững bài, ông cần trả lời đúng lần ôn này và đã tự viết mã vượt qua kiểm thử.</p>
                 <div className="review-options">
-                  {reviewActivity.options.map((option, index) => <button key={option} aria-pressed={reviewChoice === index} className={reviewChoice === index ? "answer-option selected" : "answer-option"} onClick={() => { setReviewChoice(index); setReviewFeedback(null); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>)}
+                  {reviewActivity.options.map((option, index) => <button key={option} aria-pressed={reviewChoice === index} className={reviewChoice === index ? "answer-option selected" : "answer-option"} onClick={() => { setReviewChoice(index); setReviewFeedback(null); }}><span>{String.fromCharCode(65 + index)}</span>{option}{reviewChoice === index && <i className="choice-check" aria-hidden="true">✓</i>}</button>)}
                 </div>
                 {reviewFeedback ? <div className={reviewChoice === reviewActivity.correctIndex && codeIndependent && standardIndependent ? "runtime-feedback correct" : "runtime-feedback retry"} role="status"><strong>{reviewChoice === reviewActivity.correctIndex ? (codeIndependent ? "Recall độc lập đạt" : "Còn thiếu code độc lập") : "Chưa mở mastery"}</strong><p>{reviewFeedback}</p>{reviewChoice === reviewActivity.correctIndex && !codeIndependent ? <button className="outline-action" onClick={retryCodeIndependently}>Xác minh code không trợ giúp</button> : null}</div> : null}
                 <button className="primary-action" disabled={reviewSubmitDisabled} onClick={checkReview}>Chấm bài ôn</button>
@@ -1019,24 +1019,24 @@ function SocraticLab({ lessonId, targetActivityId, initialMode, repairItem, retu
               <>
                 {stage.input.kind === "choice" ? (
                   <div className="answer-list runtime-answers">
-                    {stage.input.options.map((label, index) => <button key={label} aria-pressed={choice === index} className={choice === index ? "answer-option selected" : "answer-option"} onClick={() => { setChoice(index); setFeedback(null); }}><span>{String.fromCharCode(65 + index)}</span>{label}</button>)}
+                    {stage.input.options.map((label, index) => <button key={label} aria-pressed={choice === index} className={choice === index ? "answer-option selected" : "answer-option"} onClick={() => { setChoice(index); setFeedback(null); }}><span>{String.fromCharCode(65 + index)}</span>{label}{choice === index && <i className="choice-check" aria-hidden="true">✓</i>}</button>)}
                   </div>
                 ) : null}
 
                 {stage.input.kind === "number" ? <label className="response-field"><span>Kết quả tính toán</span><input inputMode="decimal" value={response} onChange={(event) => { setResponse(event.target.value); setFeedback(null); }} placeholder="Nhập một số" /></label> : null}
-                {stage.input.kind === "text" ? <>{clinicCard ? <RepairClinic key={stage.id} card={clinicCard} focus={repairItem?.prompt ?? "Nối lại cơ chế còn thiếu."} passed={clinicPassed} onPass={() => setClinicPassed(true)} /> : null}<label className="response-field"><span>Giải thích bằng lời của ông</span><textarea rows={7} value={response} onChange={(event) => { setResponse(event.target.value); setFeedback(null); }} placeholder="Hãy kể cơ chế như đang giải thích cho một người bạn: cái gì tác động lên cái gì, rồi kết quả đổi ra sao?" /><small>{response.trim().length}/{stage.input.minLength} ký tự tối thiểu</small></label><div className="explanation-rubric" aria-label="Ba câu tự kiểm trước khi nộp"><header><strong>Trước khi nộp, tự hỏi 3 câu</strong><span>CALIBRATED · 56 CASES</span></header><ul><li><span>1</span>Người nghe có lần theo được các bước bên trong cơ chế không?</li><li><span>2</span>Tôi đã nói rõ “vì sao” thay vì chỉ kể tên khái niệm chưa?</li><li><span>3</span>Tôi có dùng cấu trúc hoặc ví dụ của riêng mình không?</li></ul></div></> : null}
-                {stage.input.kind === "code" ? <div className="python-lab"><label className="response-field code-field"><span>Python 3.14 · isolated WebAssembly sandbox</span><textarea ref={codeEditorRef} rows={10} spellCheck={false} value={code} onChange={(event) => { setCode(event.target.value); setFeedback(null); setPythonRun(null); }} /></label><div className="sandbox-contract"><span>TIME LIMIT 2.5S</span><span>NO IMPORTS</span><span>NO FILES / NETWORK</span><span>MAX 5K CHARS</span></div>{runnerPhase ? <div className="runner-status" role="status"><i />{runnerPhase === "booting" ? "Đang khởi tạo Python runtime…" : "Đang chạy code và hidden tests…"}</div> : null}{pythonRun ? <div className={pythonRun.passed ? "test-report passed" : "test-report failed"}><header><strong>{pythonRun.passed ? "All hidden tests passed" : "Hidden tests chưa đạt"}</strong><span>{pythonRun.tests.filter((test) => test.passed).length}/{pythonRun.tests.length}</span></header>{pythonRun.error ? <p className="runtime-error">{pythonRun.error}</p> : null}<ul>{pythonRun.tests.map((test) => <li className={test.passed ? "passed" : "failed"} key={test.name}><span>{test.passed ? "✓" : "×"}</span>{test.name}</li>)}</ul>{pythonRun.output ? <pre aria-label="Python output">{pythonRun.output}</pre> : null}</div> : null}<section className="code-coach"><header><div><strong>Không nhớ lệnh Python?</strong><p>Hiểu thuật toán trước, rồi lấy đúng mảnh cú pháp cần dùng.</p></div><span>{hintLevel}/2 hỗ trợ</span></header>{hintLevel === 0 ? <button className="outline-action" onClick={() => unlockCodeCoach(1)}>Giải thích thuật toán bằng tiếng Việt</button> : <ol>{codeCoach.mentalSteps.map((step) => <li key={step}>{step}</li>)}</ol>}{hintLevel === 1 ? <button className="text-link" onClick={() => unlockCodeCoach(2)}>Tôi vẫn chưa biết viết lệnh → mở toolbox cú pháp</button> : null}{hintLevel >= 2 ? <div className="syntax-toolbox">{codeCoach.snippets.map((snippet) => <article key={snippet.label}><div><strong>{snippet.label}</strong><button onClick={() => insertSnippet(snippet.code)}>Chèn tại con trỏ</button></div><code>{snippet.code}</code><p>{snippet.why}</p></article>)}</div> : null}<small>Dùng Code Coach vẫn được tính là practice, nhưng Mastered yêu cầu chạy lại code không trợ giúp.</small></section></div> : null}
+                {stage.input.kind === "text" ? <>{clinicCard ? <RepairClinic key={stage.id} card={clinicCard} focus={repairItem?.prompt ?? "Nối lại cơ chế còn thiếu."} passed={clinicPassed} onPass={() => setClinicPassed(true)} /> : null}<label className="response-field"><span>Giải thích bằng lời của ông</span><textarea rows={7} value={response} onChange={(event) => { setResponse(event.target.value); setFeedback(null); }} placeholder="Hãy kể cơ chế như đang giải thích cho một người bạn: cái gì tác động lên cái gì, rồi kết quả đổi ra sao?" /><small>{response.trim().length}/{stage.input.minLength} ký tự tối thiểu</small></label><div className="explanation-rubric" aria-label="Ba câu tự kiểm trước khi nộp"><header><strong>Trước khi nộp, tự hỏi 3 câu</strong></header><ul><li><span>1</span>Người nghe có lần theo được các bước bên trong cơ chế không?</li><li><span>2</span>Tôi đã nói rõ “vì sao” thay vì chỉ kể tên khái niệm chưa?</li><li><span>3</span>Tôi có dùng cấu trúc hoặc ví dụ của riêng mình không?</li></ul></div></> : null}
+                {stage.input.kind === "code" ? <div className="python-lab"><label className="response-field code-field"><span>Trình soạn thảo Python</span><textarea ref={codeEditorRef} rows={10} spellCheck={false} autoCapitalize="off" autoCorrect="off" aria-describedby="python-limits" value={code} onChange={(event) => { setCode(event.target.value); setFeedback(null); setPythonRun(null); }} /></label><p className="sandbox-contract" id="python-limits">Chạy trên thiết bị · Tối đa 2,5 giây và 5.000 ký tự. Không hỗ trợ import, đọc tệp hoặc truy cập mạng.</p>{runnerPhase ? <div className="runner-status" role="status"><i />{runnerPhase === "booting" ? "Đang khởi động Python…" : "Đang chạy mã và kiểm thử…"}</div> : null}{pythonRun ? <div className={pythonRun.passed ? "test-report passed" : "test-report failed"}><header><strong>{pythonRun.passed ? "Đã vượt qua toàn bộ kiểm thử" : pythonRun.error ? "Chạy mã chưa thành công" : "Còn kiểm thử chưa đạt"}</strong>{pythonRun.tests.length > 0 ? <span>{pythonRun.tests.filter((test) => test.passed).length}/{pythonRun.tests.length} đạt</span> : null}</header>{pythonRun.error ? <p className="runtime-error">{pythonRun.error}</p> : null}<ul>{pythonRun.tests.map((test) => <li className={test.passed ? "passed" : "failed"} key={test.name}><span>{test.passed ? "✓" : "×"}</span>{test.name}</li>)}</ul>{pythonRun.output ? <pre aria-label="Kết quả in từ Python" tabIndex={0}>{pythonRun.output}</pre> : null}</div> : null}<section className="code-coach"><header><div><strong>Không nhớ lệnh Python?</strong><p>Hiểu thuật toán trước, rồi lấy đúng mảnh cú pháp cần dùng.</p></div><span>{hintLevel}/2 hỗ trợ</span></header>{hintLevel === 0 ? <button className="outline-action" onClick={() => unlockCodeCoach(1)}>Giải thích thuật toán bằng tiếng Việt</button> : <ol>{codeCoach.mentalSteps.map((step) => <li key={step}>{step}</li>)}</ol>}{hintLevel === 1 ? <button className="text-link" onClick={() => unlockCodeCoach(2)}>Tôi vẫn chưa biết viết lệnh → mở toolbox cú pháp</button> : null}{hintLevel >= 2 ? <div className="syntax-toolbox">{codeCoach.snippets.map((snippet) => <article key={snippet.label}><div><strong>{snippet.label}</strong><button onClick={() => insertSnippet(snippet.code)}>Chèn tại con trỏ</button></div><code>{snippet.code}</code><p>{snippet.why}</p></article>)}</div> : null}<small>Dùng Code Coach vẫn được tính là practice, nhưng Mastered yêu cầu chạy lại code không trợ giúp.</small></section></div> : null}
 
                 {stage.input.kind !== "code" ? <div className="hint-ladder">
-                  <div><span>Hint ladder</span><small>{hintLevel}/2 · dùng hint sẽ được ghi vào evidence</small></div>
+                  <div><span>Gợi ý từng bước</span><small>Đã dùng {hintLevel}/2 · được ghi vào tiến độ</small></div>
                   {stage.hints.slice(0, hintLevel).map((hint, index) => <p key={hint}><strong>Gợi ý {index + 1}:</strong> {hint}</p>)}
                   <button className="text-link" disabled={hintLevel >= 2} onClick={useHint}>{hintLevel >= 2 ? "Đã dùng hết gợi ý" : "Mở một gợi ý"}</button>
                 </div> : null}
 
-                {feedback ? <div className={feedback.correct ? "runtime-feedback correct coach-feedback" : "runtime-feedback retry coach-feedback"} role="status"><strong>{feedback.correct ? "Mental model đã nối được" : "Tôi đã thấy mắt xích đang đứt"}</strong>{feedback.coach ? <div className="coach-dialogue"><p>{feedback.coach.acknowledgement}</p><p>{feedback.coach.gap}</p><aside><span>BƯỚC SỬA NHỎ NHẤT</span><p>{feedback.coach.nextPrompt}</p></aside></div> : <p>{feedback.message}</p>}{feedback.criteria ? <details className="evidence-trace"><summary>Xem dấu vết chấm</summary><ul className="feedback-criteria">{feedback.criteria.map((criterion) => <li className={criterion.passed ? "passed" : "failed"} key={criterion.id}><span>{criterion.passed ? "✓" : "×"}</span>{criterion.label}</li>)}</ul></details> : null}{!feedback.correct && feedback.repairQueued ? <><p className="repair-confirmation">Đã thêm bài sửa này vào Hàng đợi sửa mental model.</p><button className="dispute-action" disabled={disputeSent} onClick={reportScoringDispute}>{disputeSent ? "Đã đánh dấu để tự xem lại" : "Kết quả chấm chưa hợp lý?"}</button></> : null}</div> : null}
+                {feedback ? <div className={feedback.correct ? "runtime-feedback correct coach-feedback" : "runtime-feedback retry coach-feedback"} role="status"><strong>{feedback.correct ? "Đã đạt bước này" : "Cần thử lại"}</strong>{feedback.coach ? <div className="coach-dialogue"><p>{feedback.coach.acknowledgement}</p><p>{feedback.coach.gap}</p><aside><span>BƯỚC SỬA NHỎ NHẤT</span><p>{feedback.coach.nextPrompt}</p></aside></div> : <p>{feedback.message}</p>}{feedback.criteria ? <details className="evidence-trace"><summary>Xem dấu vết chấm</summary><ul className="feedback-criteria">{feedback.criteria.map((criterion) => <li className={criterion.passed ? "passed" : "failed"} key={criterion.id}><span>{criterion.passed ? "✓" : "×"}</span>{criterion.label}</li>)}</ul></details> : null}{!feedback.correct && feedback.repairQueued ? <><p className="repair-confirmation">Đã thêm bài sửa này vào Hàng đợi sửa mental model.</p><button className="dispute-action" disabled={disputeSent} onClick={reportScoringDispute}>{disputeSent ? "Đã đánh dấu để tự xem lại" : "Kết quả chấm chưa hợp lý?"}</button></> : null}</div> : null}
 
                 <div className="activity-actions">
-                  <button className="primary-action" onClick={stageComplete ? nextStage : checkAnswer} disabled={runnerPhase !== null || (!stageComplete && (!canCheck || Boolean(clinicCard && !clinicPassed)))}>{stageComplete ? (progress.currentIndex === lesson.activities.length - 1 ? "Hoàn tất phiên học" : "Hoạt động tiếp theo →") : runnerPhase ? "Python đang chạy…" : stage.input.kind === "code" ? "Run hidden tests" : "Kiểm tra câu trả lời"}</button>
+                  <button className="primary-action" onClick={stageComplete ? nextStage : checkAnswer} disabled={runnerPhase !== null || (!stageComplete && (!canCheck || Boolean(clinicCard && !clinicPassed)))}>{stageComplete ? (progress.currentIndex === lesson.activities.length - 1 ? "Hoàn tất phiên học" : "Hoạt động tiếp theo →") : runnerPhase ? "Python đang chạy…" : stage.input.kind === "code" ? "Chạy mã và kiểm thử" : "Kiểm tra câu trả lời"}</button>
                   <span>{progress.attempts[stage.id] ?? 0} lần thử</span>
                 </div>
               </>
@@ -1048,9 +1048,9 @@ function SocraticLab({ lessonId, targetActivityId, initialMode, repairItem, retu
           <div className="mental-content">
             <article className="workspace-guidance"><span className="mono-label">{workspaceMode}</span><h2>{reviewing ? "Tự suy luận lại" : "Mục tiêu của bước này"}</h2><p>{reviewing ? "Trả lời biến thể không dùng gợi ý. Kết quả ôn và thực hành độc lập quyết định mastery." : stage.evidence}</p>{repairItem && repairing ? <p><strong>Mắt xích cần sửa:</strong> {repairItem.prompt}</p> : null}</article>
             <EvidenceSummary progress={progress} total={lesson.activities.length} />
-            <article className={progress.completed.includes(lesson.activities[2].id) ? "mental-block complete" : "mental-block active"}><span>1. THE CONCEPT</span><h3>{lesson.title}</h3><p>{lesson.concept}</p></article>
-            <article className={progress.completed.includes(lesson.activities[3].id) ? "mental-block complete" : progress.currentIndex >= 2 ? "mental-block active" : "mental-block pending"}><span>2. THE MECHANISM</span><h3>How it works</h3><p>{lesson.mechanism}</p></article>
-            <article className={progress.completed.includes(lesson.activities[4].id) ? "mental-block complete" : progress.currentIndex === 4 ? "mental-block active" : "mental-block pending"}><span>3. TRANSFER</span><h3>Where it matters</h3><p>{lesson.transfer}</p></article>
+            <article className={progress.completed.includes(lesson.activities[2].id) ? "mental-block complete" : "mental-block active"}><span>01 · KHÁI NIỆM</span><h3>{lesson.title}</h3><p>{lesson.concept}</p></article>
+            <article className={progress.completed.includes(lesson.activities[3].id) ? "mental-block complete" : progress.currentIndex >= 2 ? "mental-block active" : "mental-block pending"}><span>02 · CƠ CHẾ</span><h3>Vì sao nó hoạt động?</h3><p>{lesson.mechanism}</p></article>
+            <article className={progress.completed.includes(lesson.activities[4].id) ? "mental-block complete" : progress.currentIndex === 4 ? "mental-block active" : "mental-block pending"}><span>03 · VẬN DỤNG</span><h3>Dùng vào việc gì?</h3><p>{lesson.transfer}</p></article>
             <p className="source-note"><strong>Nguồn:</strong> {lesson.source.title} · {lesson.source.locator}</p>
           </div>
         </details>

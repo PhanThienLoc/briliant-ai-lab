@@ -53,6 +53,15 @@ test("due review outranks novelty and explains the evidence", () => {
   assert.equal(queue.totalMinutes <= 30, true);
 });
 
+test("a review due less than one full day ago is described as due", () => {
+  const queue = buildTodayQueue({
+    now: new Date("2026-09-05T08:00:00Z"), budgetMinutes: 30, repairs: [],
+    concepts: [concept({ state: "review_due", nextReviewAt: "2026-09-04T23:00:00Z" })],
+  });
+  assert.equal(queue.items[0].type, "review");
+  assert.match(queue.items[0].reason, /đến hạn ôn/);
+});
+
 test("critical repair outranks non-due novelty", () => {
   const queue = buildTodayQueue({
     now: new Date("2026-09-05T00:00:00.000Z"),
