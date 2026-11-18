@@ -1,0 +1,14 @@
+.source-coverage { margin: 20px 0; padding: clamp(16px,3vw,24px); background: var(--surface-lowest); color: var(--on-surface); border: 1px solid var(--outline-variant); border-radius: 16px; }
+.source-coverage > header, .source-coverage > footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
+.source-coverage h2 { margin:8px 0 16px; }
+.source-coverage p { line-height:1.65; overflow-wrap:anywhere; }
+.source-coverage label { display:flex; align-items:center; gap:12px; min-height:44px; }
+.source-coverage > label { flex-wrap:wrap; margin-top:16px; }
+.source-coverage > label input { padding:12px; min-width:0; max-width:100%; flex:1; border:1px solid var(--outline); border-radius:8px; color:var(--on-surface); background:var(--surface); font-size:16px; }
+.coverage-sections { display:grid; gap:12px; margin:20px 0; }
+.coverage-sections article { padding:12px; border:1px solid var(--outline-variant); border-radius:8px; }
+.coverage-sections summary { cursor:pointer; padding:12px 0; }
+.coverage-sections details p { white-space:pre-wrap; }
+.coverage-sections input { width:24px; height:24px; flex-shrink:0; accent-color:var(--primary); }
+.coverage-saved { list-style:none; padding:0; }
+.source-coverage .studio-extract { margin:0; }

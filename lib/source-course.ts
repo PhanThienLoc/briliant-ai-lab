@@ -167,8 +167,19 @@ export function buildSourceCourse(input: { title: string; kind: SourceKind; text
     sections = sampleSections(candidates.map((text, index) => ({ text: text.slice(0, 2200), location: `Đoạn ${index + 1}` }))
       .filter((section) => evidenceSpans(section.text, input.kind).length >= 2));
   }
+  return buildPracticeFromSections(input, sections, now);
+}
+
+/** Shared recognition-exercise builder; callers must supply literal source sections. */
+export function buildPracticeFromSections(
+  input: { title: string; kind: SourceKind; sourceName: string; sourceUrl?: string },
+  sections: SourceSection[],
+  now = new Date(),
+): SourceCourse {
+  if (sections.length > 6) throw new Error("Chọn tối đa 6 mục để tạo bài tập.");
   if (sections.length < 2) throw new Error(input.kind === "book" ? "Không đủ đoạn văn xuôi trong nội dung chương. Hãy bỏ trang bản quyền, mục lục và mã/bảng, rồi chọn ít nhất hai đoạn có nội dung." : input.kind === "video" ? "Không đủ lời nói rõ ràng trong transcript. Hãy cung cấp SRT/VTT có lời nói hoặc ít nhất hai đoạn transcript." : "Không đủ nội dung rõ ràng để tạo khóa học.");
   const evidence = (section: SourceSection) => evidenceSpans(section.text, input.kind);
+  if (sections.some((section) => evidence(section).length < 2)) throw new Error("Mỗi mục được chọn cần ít nhất hai câu văn xuôi rõ ràng để tạo bài tập có dẫn chứng.");
   const claims = sections.map((section) => evidence(section)[0]);
   const transferClaims = sections.map((section) => evidence(section)[1]);
   if (new Set(claims.map((claim) => claim.toLocaleLowerCase())).size !== sections.length || new Set(transferClaims.map((claim) => claim.toLocaleLowerCase())).size !== sections.length) throw new Error("Nguồn có quá nhiều đoạn lặp để tạo câu hỏi phân biệt. Hãy chọn các phần đa dạng hơn.");

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createLearningBackup, parseLearningBackupText, restoreLearningBackup, summarizeLearningBackup } from "../lib/learning-backup.ts";
 import { ADAPTIVE_STATE_KEY, createLocalStorageLearningRepository } from "../lib/learning-repository.ts";
+import { SOURCE_DRAFTS_KEY } from "../lib/source-draft-store.ts";
+import { buildSourceCourse, SOURCE_COURSES_KEY } from "../lib/source-course.ts";
 import { lessonCatalog } from "../lib/lesson-catalog.ts";
 
 class MemoryStorage {
@@ -183,4 +185,65 @@ test("v1 expansion-only passport counts unique labs and newer keys take preceden
     const newer = createLearningBackup(new MemoryStorage({ ...v1, [`briliantai.expansion-progress.v${version}`]: JSON.stringify({ completedLabIds: [] }) }));
     assert.equal(summarizeLearningBackup(newer).expansionLabCount, 0);
   }
+});
+
+
+function coverageFixture() {
+  return {
+    version: 2, id: "coverage-1", title: "Bản nháp độ phủ", kind: "article",
+    document: {
+      id: "doc-1", name: "Tài liệu nguồn",
+      sections: Array.from({ length: 12 }, (_, index) => ({
+        id: `section-${index + 1}`, text: `Mục nguồn ${index + 1}. Đây là nội dung giữ nguyên để kiểm tra bản sao lưu.`,
+        locator: { kind: "section", path: ["Tài liệu"], ordinal: index + 1 },
+      })),
+    },
+    selectedSectionIds: ["section-2", "section-7"],
+    coverage: { selectedUnits: 12, processedUnits: 12, emptyUnits: [], truncated: false, lastProcessedUnit: 12 },
+    updatedAt: "2026-11-19T00:00:00Z",
+  };
+}
+
+function savedSourceCourse() {
+  const paragraph = "Tập huấn luyện được dùng để tìm tham số của mô hình bằng những ví dụ đã có nhãn. Tập xác thực giúp chọn mô hình mà không sử dụng dữ liệu kiểm tra. Tập kiểm tra chỉ được sử dụng khi mọi quyết định đã được hoàn tất.";
+  return buildSourceCourse({
+    title: "Khóa cũ", kind: "article", sourceName: "Nguồn cũ",
+    text: `${paragraph}
+
+Một bước chuẩn hóa phải được học từ tập huấn luyện để tránh rò rỉ thông tin. Khi đánh giá mô hình cần giữ nguyên cấu hình đã được chọn từ trước. Việc đưa thống kê của tập kiểm tra vào quá trình chuẩn hóa có thể gây kết quả đánh giá lạc quan.`,
+  }, new Date("2026-11-18T00:00:00Z"));
+}
+
+test("coverage drafts round-trip in Passport without changing source courses", () => {
+  const draftBytes = JSON.stringify([coverageFixture()]);
+  const courseBytes = JSON.stringify([savedSourceCourse()]);
+  const source = new MemoryStorage({ [SOURCE_DRAFTS_KEY]: draftBytes, [SOURCE_COURSES_KEY]: courseBytes });
+  const backup = parseLearningBackupText(JSON.stringify(createLearningBackup(source)));
+  const target = new MemoryStorage();
+  restoreLearningBackup(backup, target);
+  assert.equal(target.getItem(SOURCE_DRAFTS_KEY), draftBytes);
+  assert.equal(target.getItem(SOURCE_COURSES_KEY), courseBytes);
+  assert.equal(JSON.parse(target.getItem(SOURCE_DRAFTS_KEY))[0].document.sections.length, 12);
+});
+
+test("invalid coverage draft in Passport is rejected before old drafts or courses change", () => {
+  const original = { [SOURCE_DRAFTS_KEY]: JSON.stringify([coverageFixture()]), [SOURCE_COURSES_KEY]: JSON.stringify([savedSourceCourse()]) };
+  const storage = new MemoryStorage(original);
+  const invalid = coverageFixture(); invalid.selectedSectionIds.push("unknown-section");
+  const backup = createLearningBackup(new MemoryStorage({ ...original, [SOURCE_DRAFTS_KEY]: JSON.stringify([invalid]) }));
+  assert.throws(() => restoreLearningBackup(parseLearningBackupText(JSON.stringify(backup)), storage));
+  assert.deepEqual(Object.fromEntries(storage.values), original);
+});
+
+test("failed coverage restore rolls back courses and prior draft bytes", () => {
+  const original = { [SOURCE_DRAFTS_KEY]: JSON.stringify([coverageFixture()]), [SOURCE_COURSES_KEY]: JSON.stringify([savedSourceCourse()]) };
+  const changed = coverageFixture(); changed.title = "Bản mới";
+  const oldCourse = savedSourceCourse(); const newCourse = { ...oldCourse, title: "Khóa mới" };
+  const backup = parseLearningBackupText(JSON.stringify(createLearningBackup(new MemoryStorage({
+    [SOURCE_COURSES_KEY]: JSON.stringify([newCourse]),
+    [SOURCE_DRAFTS_KEY]: JSON.stringify([changed]),
+  }))));
+  const storage = new MemoryStorage(original, SOURCE_DRAFTS_KEY);
+  assert.throws(() => restoreLearningBackup(backup, storage), /dữ liệu cũ đã được giữ lại/);
+  assert.deepEqual(Object.fromEntries(storage.values), original);
 });

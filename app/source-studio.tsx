@@ -1,40 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { buildSourceCourse, completeSourceLesson, finalizeSourceDraft, MIN_SOURCE_CHARS, MAX_SOURCE_CHARS, normalizeSourceText, parseSourceCourses, SOURCE_COURSES_KEY, type SourceCourse, type SourceKind } from "../lib/source-course";
-import { sourcePdfError } from "../lib/pdf-error";
-import { MAX_PDF_PAGES, resolvePdfPageRange } from "../lib/pdf-page-range";
+import { completeSourceLesson, finalizeSourceDraft, MIN_SOURCE_CHARS, MAX_SOURCE_CHARS, normalizeSourceText, parseSourceCourses, SOURCE_COURSES_KEY, type SourceCourse, type SourceKind } from "../lib/source-course";
+import { readSourceFile, ingestToText, type IngestResult } from "../lib/source-ingest";
+import { readSourcePracticeDraft, saveSourcePracticeDraft, clearSourcePracticeDraft } from "../lib/source-practice-draft";
+import { MAX_PDF_PAGES } from "../lib/pdf-page-range";
 
 import { CourseLibrary, sourceKindLabels as kindLabels } from "../components/learning/course-library";
+import { SourceCoverage } from "../components/learning/source-coverage";
+import { buildSourceDocument, documentFromText } from "../lib/source-document";
+import { ingestText } from "../lib/source-ingest";
+import type { CoverageDraft } from "../lib/source-draft-store";
 import type { ExpansionLabId } from "../lib/expansion-catalog";
 const currentTime = () => Date.now();
-
-async function readSourceFile(file: File, firstPage: string, lastPage: string): Promise<string> {
-  const isPdf = /\.pdf$/i.test(file.name);
-  if (file.size > (isPdf ? 30 : 15) * 1024 * 1024) throw new Error(`Tệp vượt ${isPdf ? 30 : 15} MB. Hãy chọn một tệp nhỏ hơn.`);
-  if (isPdf) {
-    const pdfjs = await import("pdfjs-dist");
-    pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-    const pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise.catch((error: unknown) => { throw sourcePdfError(error); });
-    try {
-      const range = resolvePdfPageRange(firstPage, lastPage, pdf.numPages);
-      const pages: string[] = [];
-      for (let pageNumber = range.first; pageNumber <= range.last; pageNumber++) {
-        const page = await pdf.getPage(pageNumber);
-        const content = await page.getTextContent();
-        const text = content.items.map((item) => "str" in item ? item.str : "").join(" ").trim();
-        if (text) pages.push(`Trang ${pageNumber}\n${text}`);
-        if (pages.join("\n\n").length >= MAX_SOURCE_CHARS) break;
-      }
-      if (!pages.length) throw new Error("PDF này không có lớp chữ để trích xuất. Hãy dùng bản OCR hoặc dán văn bản.");
-      return pages.join("\n\n").slice(0, MAX_SOURCE_CHARS);
-    } finally {
-      await pdf.destroy();
-    }
-  }
-  if (!/\.(txt|md|markdown|srt|vtt)$/i.test(file.name)) throw new Error("Hỗ trợ PDF có lớp chữ, TXT, Markdown, SRT và VTT.");
-  return (await file.text()).slice(0, MAX_SOURCE_CHARS + 1);
-}
 
 type SourceStudioProps = {
   mode?: "library" | "create";
@@ -47,6 +25,9 @@ type SourceStudioProps = {
 };
 
 export function SourceStudio({ mode = "create", navigationId, visible = true, libraryRevision = 0, initialCourseId, initialLessonId, onCreate, onLibrary, onLesson, onTrack }: SourceStudioProps) {
+  const [coverageDraft, setCoverageDraft] = useState<CoverageDraft | null>(null);
+  const [coverage, setCoverage] = useState<IngestResult | null>(null);
+  const [draftStorageMessage, setDraftStorageMessage] = useState("");
   const [courses, setCourses] = useState<SourceCourse[]>([]);
   const [hydrated, setHydrated] = useState(false);
   // Route effects read the latest committed records without resetting a learner's answer after each save.
@@ -142,6 +123,23 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     }
   }, [readerKey, visible]);
 
+  function keepDraft() {
+    if (!draft) return;
+    try {
+      saveSourcePracticeDraft(window.localStorage, { version: 1, course: draft, selectedIds, edits, updatedAt: new Date().toISOString() });
+      setDraftStorageMessage("Đã lưu bản nháp trên thiết bị. Có thể tải lại trang rồi khôi phục.");
+    } catch (error) { setDraftStorageMessage(error instanceof Error ? error.message : "Không thể lưu bản nháp."); }
+  }
+
+  function resumeDraft() {
+    const result = readSourcePracticeDraft(() => window.localStorage);
+    if (result.error || !result.draft) { setDraftStorageMessage(result.error || "Chưa có bản nháp đã lưu."); return; }
+    const saved = result.draft;
+    setDraft(saved.course); setSelectedIds(saved.selectedIds); setEdits(saved.edits);
+    pendingDraftFocus.current = true;
+    setDraftStorageMessage("Đã khôi phục bản nháp đã lưu. Thay đổi mới cần lưu lại trước khi đóng trang.");
+  }
+
   function persist(next: SourceCourse[]) {
     if (!hydrated || storageError) { setMessage("Chưa thể lưu khi thư viện chưa đọc được. Bản nháp và dữ liệu trước đó được giữ nguyên."); return false; }
     try {
@@ -159,7 +157,9 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     if (!selectedFile) return;
     setBusy(true); setMessage("");
     try {
-      const content = await readSourceFile(selectedFile, firstPage, lastPage);
+      const result = await readSourceFile(selectedFile, { first: firstPage, last: lastPage });
+      const content = ingestToText(result);
+      setCoverage(result);
       setText(content);
       setNeedsExtract(false);
       setSourceName(selectedFile.name);
@@ -173,10 +173,18 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     setMessage("");
     try {
       if (sourceUrl && !/^https?:\/\/\S+$/i.test(sourceUrl)) throw new Error("Liên kết nguồn cần bắt đầu bằng http:// hoặc https://.");
-      const course = buildSourceCourse({ title, kind, text, sourceName: sourceName || sourceUrl || "Nguồn do người học cung cấp", sourceUrl });
-      pendingDraftFocus.current = true;
-      setDraft(course); setSelectedIds(course.lessons.map((item) => item.id)); setEdits({});
-      setMessage("Bản nháp chưa lưu. Xem từng đoạn, chỉnh mục tiêu và chọn ít nhất 2 bài trong phần duyệt bản nháp.");
+      const id = `source-${Date.now()}-${Math.random().toString(36).slice(2,9)}`;
+      const name = sourceName || sourceUrl || "Nguồn do người học cung cấp";
+      const document = coverage?.blocks.some((block) => block.locator.kind === "page")
+        ? buildSourceDocument({ id, name, blocks: coverage.blocks })
+        : documentFromText(id, name, text);
+      const imported = coverage ?? ingestText(text);
+      const { blocks: _blocks, ...counts } = imported;
+      void _blocks;
+      setDraft(null); setSelectedIds([]); setEdits({});
+      setCoverageDraft({ version: 2, id, title, kind, ...(sourceUrl ? { sourceUrl } : {}), document, selectedSectionIds: [], coverage: counts, updatedAt: new Date().toISOString() });
+      setMessage("Đã giữ đầy đủ các mục trong phần nguồn đã nhập. Chọn mục ở Bản đồ độ phủ tài liệu để tạo bài tập.");
+
     } catch (error) { setMessage(error instanceof Error ? error.message : "Chưa thể tạo khóa học."); }
   }
 
@@ -215,6 +223,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
 
   return <div className="source-studio">
     <header className="studio-heading"><div><span className="studio-eyebrow">{mode === "library" ? "HỌC TỪ NGUỒN · TRÊN THIẾT BỊ NÀY" : "TỪ NGUỒN ĐẾN HIỂU BIẾT"}</span><h1 ref={studioHeading} tabIndex={-1}>{mode === "library" ? "Thư viện của ông" : "Tạo khóa học"}</h1><p>{mode === "library" ? "Tiếp tục một khóa đã lưu hoặc khám phá các lộ trình AI & Data." : "Chọn nguồn, xem lại từng bài và lưu một lộ trình có dẫn chứng."}</p></div>{mode === "create" && onLibrary ? <button className="studio-extract" onClick={onLibrary}>Mở thư viện →</button> : null}</header>
+    {mode === "create" ? <div className="studio-message"><button className="studio-extract" onClick={resumeDraft}>Khôi phục bản nháp đã lưu</button>{draftStorageMessage ? <p role="status">{draftStorageMessage}</p> : null}</div> : null}
     {message ? <p className="studio-message" role="status">{message}</p> : null}
     {missingTarget && mode === "library" ? <p className="studio-message" role="alert">{missingTarget}</p> : null}
     {mode === "library" && !active ? <CourseLibrary courses={courses} now={now} hydrated={hydrated} storageError={storageError} onOpen={chooseCourse} onRemove={removeCourse} onCreate={onCreate} onLesson={onLesson} onTrack={onTrack} /> : null}
@@ -228,11 +237,12 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
         <div className="studio-section-head"><span>BƯỚC 1 · CHỌN NGUỒN</span><h2 id="studio-form-heading">Ông muốn học từ đâu?</h2></div>
         <label>Loại nguồn<select value={kind} onChange={(event) => setKind(event.target.value as SourceKind)}>{Object.entries(kindLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
         <label>Tên khóa học<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ví dụ: Hiểu căn bản về attention" maxLength={100} /></label>
-        <label>Văn bản hoặc PDF<input type="file" accept=".pdf,.txt,.md,.markdown,.srt,.vtt" onChange={(event) => { setSelectedFile(event.target.files?.[0] ?? null); setNeedsExtract(Boolean(event.target.files?.[0])); setText(""); setMessage(""); }} disabled={busy} /></label>
+        <label>Văn bản hoặc PDF<input type="file" accept=".pdf,.txt,.md,.markdown,.srt,.vtt" onChange={(event) => { setCoverage(null); setSelectedFile(event.target.files?.[0] ?? null); setNeedsExtract(Boolean(event.target.files?.[0])); setText(""); setMessage(""); }} disabled={busy} /></label>
         {selectedFile && /\.pdf$/i.test(selectedFile.name) ? <div className="studio-two"><label>Trang bắt đầu<input type="number" min="1" step="1" value={firstPage} onChange={(event) => { setFirstPage(event.target.value); setNeedsExtract(true); setText(""); }} /></label><label>Trang kết thúc (để trống: tối đa {MAX_PDF_PAGES} trang)<input type="number" min="1" step="1" value={lastPage} onChange={(event) => { setLastPage(event.target.value); setNeedsExtract(true); setText(""); }} /></label></div> : null}
         {selectedFile ? <button className="studio-extract" type="button" onClick={() => void extractFile()} disabled={busy}>{busy ? "Đang trích xuất…" : "Trích xuất tệp →"}</button> : null}
         <div className="studio-two"><label>Tên nguồn<input value={sourceName} onChange={(event) => setSourceName(event.target.value)} placeholder="Tác giả, tên sách hoặc video" maxLength={160} /></label><label>Liên kết gốc (tùy chọn)<input type="url" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder="https://..." /></label></div>
-        <label>Nội dung để học<textarea aria-describedby="studio-source-help" value={text} onChange={(event) => { setText(event.target.value); setNeedsExtract(false); }} placeholder={kind === "video" ? "Dán transcript của video vào đây..." : "Dán văn bản từ nguồn vào đây hoặc trích xuất tệp ở trên..."} rows={8} maxLength={MAX_SOURCE_CHARS + 1} /></label>
+        {coverage ? <div className="studio-message" role="status"><strong>Độ phủ trích xuất</strong><p>Đã xử lý {coverage.processedUnits}/{coverage.selectedUnits} đơn vị nguồn; {coverage.emptyUnits.length} đơn vị không có chữ.</p>{coverage.emptyUnits.length ? <p>Không có chữ tại: {coverage.emptyUnits.join(", ")}.</p> : null}{coverage.truncated ? <p>Nguồn đã bị cắt tại giới hạn ký tự. Đơn vị cuối được xử lý: {coverage.lastProcessedUnit}. Chọn khoảng nhỏ hơn để đọc tiếp.</p> : null}<p>Đây là độ phủ trích xuất, không phải độ phủ khóa học. PDF dùng số trang vật lý.</p></div> : null}
+        <label>Nội dung để học<textarea aria-describedby="studio-source-help" value={text} onChange={(event) => { setText(event.target.value); setNeedsExtract(false); setCoverage(null); }} placeholder={kind === "video" ? "Dán transcript của video vào đây..." : "Dán văn bản từ nguồn vào đây hoặc trích xuất tệp ở trên..."} rows={8} maxLength={MAX_SOURCE_CHARS + 1} /></label>
         <p id="studio-source-help" className="studio-source-help">{needsExtract ? "Trích xuất tệp trước hoặc dán văn bản để tiếp tục." : contentLength < MIN_SOURCE_CHARS ? `Thêm ít nhất ${MIN_SOURCE_CHARS - contentLength} ký tự nội dung để xem bản nháp.` : contentLength > MAX_SOURCE_CHARS ? "Nguồn quá dài. Hãy chia thành các phần nhỏ hơn." : "Đã đủ độ dài. Hãy xem bản nháp để kiểm tra từng đoạn nguồn."}</p>
         <div className="studio-form-foot"><span>{contentLength.toLocaleString("vi-VN")} / {MAX_SOURCE_CHARS.toLocaleString("vi-VN")} ký tự</span><button className="studio-button" aria-describedby="studio-source-help" onClick={create} disabled={busy || needsExtract || contentLength < MIN_SOURCE_CHARS || contentLength > MAX_SOURCE_CHARS}>{busy ? "Đang đọc…" : "Xem bản nháp →"}</button></div>
         <p className="studio-disclosure">Nguồn và khóa học được xử lý trên thiết bị này. PDF có lớp chữ cho chọn tối đa 60 trang mỗi lượt (tệp tối đa 30 MB), khóa học lấy mẫu tối đa 6 đoạn và không bao phủ toàn bộ sách. Markdown chia theo tiêu đề mục; SRT/VTT giữ mốc thời gian của đoạn được chọn. Liên kết chỉ lưu để dẫn nguồn; URL không tự tải nội dung. Video cần transcript; PDF scan cần OCR hoặc dán văn bản. Hãy kiểm tra câu hỏi và bản quyền nguồn trước khi dùng.</p>
@@ -249,9 +259,10 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
           <details><summary>Đối chiếu đoạn nguồn và câu hỏi bài {index + 1}</summary><blockquote>{item.excerpt}</blockquote><strong>{item.question}</strong><ol>{item.options.map((option, optionIndex) => <li key={optionIndex}>{option}{optionIndex === item.answer ? " — Đáp án theo nguồn" : ""}</li>)}</ol><p><strong>Bài ôn sau 72 giờ:</strong> {item.reviewOptions[item.reviewAnswer]}</p><small>Câu hỏi kiểm tra nhận biết ý trong nguồn; mục tiêu tự giải thích do ông đặt chưa được chấm tự động.</small></details>
         </article>;
       })}</div>
-      <footer><span>Bản nháp được giữ khi chuyển mục trong ứng dụng, nhưng sẽ mất nếu tải lại hoặc đóng trang. Thư viện cũ chỉ thay đổi khi lưu thành công.</span><button className="studio-extract" onClick={() => setDraft(null)}>Bỏ bản nháp</button><button className="studio-button" disabled={!hydrated || Boolean(storageError) || selectedIds.length < 2 || !draft.title.trim()} onClick={saveDraft}>Lưu {selectedIds.length} bài vào thư viện →</button></footer>
-    </section> : <aside className="studio-preview-empty"><span className="studio-eyebrow">BƯỚC 2 · DUYỆT & LƯU</span><h2>Bản nháp xuất hiện ở đây</h2><p>Thêm nội dung nguồn rồi chọn “Xem bản nháp”. Ông có thể sửa tên, mục tiêu và chọn ít nhất 2 bài để lưu.</p><p className="studio-disclosure">Mỗi bài có một đoạn trích để ông đối chiếu trước khi lưu.</p></aside>}
+      <footer><span>Chọn “Lưu bản nháp trên thiết bị” để khôi phục sau khi tải lại. Thay đổi sau đó cần lưu lại. Thư viện cũ chỉ đổi khi lưu khóa học thành công.</span><button className="studio-extract" onClick={keepDraft}>Lưu bản nháp trên thiết bị</button><button className="studio-extract" onClick={() => setDraft(null)}>Đóng bản nháp</button><button className="studio-extract" onClick={() => { try { clearSourcePracticeDraft(window.localStorage); setDraftStorageMessage("Đã xóa bản nháp lưu trên thiết bị."); } catch { setDraftStorageMessage("Không thể xóa bản nháp lưu trên thiết bị."); } }}>Xóa bản nháp đã lưu</button><button className="studio-button" disabled={!hydrated || Boolean(storageError) || selectedIds.length < 2 || !draft.title.trim()} onClick={saveDraft}>Lưu {selectedIds.length} bài vào thư viện →</button></footer>
+    </section> : <aside className="studio-preview-empty"><span className="studio-eyebrow">BƯỚC 2 · DUYỆT & LƯU</span><h2>Bài tập đã chọn xuất hiện ở đây</h2><p>Chọn “Xem bản nháp” để mở bản đồ độ phủ bên dưới, rồi chọn 2–6 mục để tạo bài tập. Ông có thể sửa mục tiêu trước khi lưu.</p><p className="studio-disclosure">Mỗi bài có một đoạn trích để ông đối chiếu trước khi lưu.</p></aside>}
     </div>
+    {mode === "create" ? <SourceCoverage value={coverageDraft} onChange={(next) => { setCoverageDraft(next); setDraft(null); setSelectedIds([]); setEdits({}); }} onPractice={(course) => { pendingDraftFocus.current = true; setDraft(course); setSelectedIds(course.lessons.map((item) => item.id)); setEdits({}); }} /> : null}
     {mode === "library" && active && lesson ? <section className="studio-reader" aria-labelledby="studio-course-heading">
       <button className="back-link" onClick={() => { setActiveId(null); setChoice(null); setFeedback(null); }}>← Tất cả khóa học</button>
       <div className="studio-reader-head">
