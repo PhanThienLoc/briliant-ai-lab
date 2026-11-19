@@ -34,7 +34,7 @@ export function SourceCoverage({ value, onChange, onPractice }: {
   }
   function practice() {
     if (!value) return;
-    try { onPractice(toPracticeCourse(value)); setMessage("Đã tạo bản xem trước. Kiểm tra câu hỏi bên trên trước khi lưu vào thư viện."); }
+    try { onPractice(toPracticeCourse(value)); setMessage("Đã tạo bản xem trước ở bước Duyệt bài. Kiểm tra câu hỏi trước khi lưu vào thư viện."); }
     catch (error) { setMessage(error instanceof Error ? error.message : "Chưa thể tạo bài từ các mục này."); }
   }
   return <section className="source-coverage" aria-labelledby="coverage-heading">

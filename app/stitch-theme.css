@@ -435,3 +435,11 @@ button.today-action { cursor: pointer; }
 .today-session > header strong, .metric-pair strong { font-variant-numeric: tabular-nums; }
 .transform-workspace svg { background: var(--surface-lowest); }
 .bfs-workspace > svg { background-color: var(--surface-lowest); background-image: radial-gradient(circle, var(--outline-variant) .7px, transparent .8px); background-size: 20px 20px; }
+
+.studio-steps { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 20px; }
+.studio-steps button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--outline-variant); border-radius: 8px; background: var(--surface-lowest); color: var(--on-surface); font: inherit; }
+.studio-steps button[aria-current="step"] { background: var(--primary); color: var(--on-dark); }
+.studio-steps button:disabled { opacity: .55; cursor: not-allowed; }
+.create-layout { grid-template-columns: minmax(0,1fr); }
+.studio-steps button:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.studio-resume { display: flex; flex-wrap: wrap; gap: 12px; }

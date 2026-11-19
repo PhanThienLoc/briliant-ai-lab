@@ -12,7 +12,7 @@ import "../../app/ai-course-studio.css";
 type SendPreview = { config: AiConfig; prompt: string; document: CoverageDraft["document"]; selectedIds: string[] };
 const destination = (provider: string) => provider === "gemini" ? "Google Gemini API" : "OpenRouter và nhà cung cấp model được định tuyến miễn phí";
 
-export function AiCourseStudio({ draft }: { draft: CoverageDraft | null }) {
+export function AiCourseStudio({ draft, active = true }: { draft: CoverageDraft | null; active?: boolean }) {
   const { config } = useAiSettings();
   const [preview, setPreview] = useState<SendPreview | null>(null);
   const [consent, setConsent] = useState(false);
@@ -24,6 +24,14 @@ export function AiCourseStudio({ draft }: { draft: CoverageDraft | null }) {
   const [studyCourse, setStudyCourse] = useState<TeachingCourse | null>(null);
   const request = useRef<AbortController | null>(null);
   const generation = useRef(0);
+
+  useEffect(() => {
+    if (active) return;
+    generation.current++; request.current?.abort();
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) { setPreview(null); setConsent(false); setBusy(false); } });
+    return () => { cancelled = true; };
+  }, [active]);
 
   // A changed source/model/key invalidates the reviewed payload and any in-flight result.
   useEffect(() => {
@@ -51,7 +59,7 @@ export function AiCourseStudio({ draft }: { draft: CoverageDraft | null }) {
   }
 
   async function send() {
-    if (!preview || !consent || busy) return;
+    if (!active || !preview || !consent || busy) return;
     const snapshot = preview;
     if (!draft || snapshot.config.apiKey !== config.apiKey || snapshot.config.provider !== config.provider || snapshot.config.model !== config.model || snapshot.config.geminiFreeTier !== config.geminiFreeTier || JSON.stringify(snapshot.document) !== JSON.stringify(draft.document) || JSON.stringify(snapshot.selectedIds) !== JSON.stringify(draft.selectedSectionIds)) {
       setPreview(null); setConsent(false); setMessage("Nguồn hoặc cấu hình đã đổi. Hãy xem lại nội dung sẽ gửi."); return;
@@ -113,12 +121,12 @@ export function AiCourseStudio({ draft }: { draft: CoverageDraft | null }) {
     {busy ? <button className="studio-extract" onClick={() => request.current?.abort()}>Hủy chờ kết quả</button> : null}
     {candidate ? <section aria-label="Bản nháp AI chưa duyệt"><h3>Bản nháp AI · Chưa duyệt</h3><p>Đọc tất cả giải thích, câu hỏi và đáp án; đối chiếu dẫn chứng. Mã Python chỉ là văn bản, không tự chạy.</p><TeachingReader key={candidate.id} course={candidate} saved={false} /><label className="ai-confirm"><input type="checkbox" checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} />Tôi đã kiểm tra nội dung và muốn lưu bản này để học.</label><button className="studio-button" disabled={!reviewed} onClick={save}>Lưu khóa AI đã duyệt</button></section> : null}
     {savedCourses.length ? <ul className="ai-saved-list">{savedCourses.map((course) => <li key={course.id}><button className="studio-extract" onClick={() => setStudyCourse(course)}>{course.title} · {course.lessons.length} bài</button><button className="studio-extract" aria-label={`Xóa khóa AI ${course.title}`} onClick={() => removeCourse(course)}>Xóa</button></li>)}</ul> : null}
-    {studyCourse ? <TeachingReader key={studyCourse.id} course={studyCourse} saved /> : null}
+    {studyCourse ? <TeachingReader key={studyCourse.id} course={studyCourse} saved active={active} /> : null}
     <p className="studio-disclosure">Bản đầu dùng sơ đồ theo từng bước và bài code dạng văn bản. Mỗi lượt hỏi gia sư cần duyệt riêng nội dung gửi. Thực thi bài code do AI tạo chưa được bật.</p>
   </section>;
 }
 
-function TeachingReader({ course, saved }: { course: TeachingCourse; saved: boolean }) {
+function TeachingReader({ course, saved, active = true }: { course: TeachingCourse; saved: boolean; active?: boolean }) {
   const [index, setIndex] = useState(0);
   const [prediction, setPrediction] = useState("");
   const [reveal, setReveal] = useState(!saved);
@@ -166,12 +174,12 @@ function TeachingReader({ course, saved }: { course: TeachingCourse; saved: bool
       <section><h5>Bài transfer sau 72 giờ</h5>{!saved ? <><p>{lesson.transfer.question}</p><ol>{lesson.transfer.options.map((option, i) => <li key={i}>{option}{i === lesson.transfer.answer ? " — Đáp án" : ""}</li>)}</ol><p>{lesson.transfer.feedback[lesson.transfer.answer]}</p></> : due ? <><p>{lesson.transfer.question}</p><div className="ai-choices">{lesson.transfer.options.map((option, i) => <button key={i} aria-pressed={transferChoice === i} onClick={() => setTransferChoice(i)}>{String.fromCharCode(65 + i)}. {option}</button>)}</div><button className="studio-button" disabled={transferChoice === null} onClick={() => mark(true)}>Nộp bài transfer</button></> : <p>{completed?.reviewedAt ? "Đã ghi nhận lần ôn theo đáp án đã duyệt." : completed?.completedAt ? `Mở từ ${new Date(Date.parse(completed.completedAt) + 72 * 3_600_000).toLocaleString("vi-VN")}.` : "Hoàn thành kiểm tra ban đầu để đặt mốc ôn sau 72 giờ."}</p>}</section>
       {feedback ? <p role="status" className="studio-message">{feedback}</p> : null}
     </> : null}
-    {saved ? <TutorFollowup key={lesson.id} course={course} /> : null}
+    {saved ? <TutorFollowup key={lesson.id} course={course} active={active} /> : null}
     <section><h5>Đối chiếu nguồn</h5>{lesson.evidence.map((ref, i) => { const section = course.source.document.sections.find((item) => item.id === ref.sectionId); return <blockquote key={i}><small>{section ? formatLocator(section.locator) : ref.sectionId}</small><p>{ref.quote}</p></blockquote>; })}<p className="studio-disclosure">Dẫn chứng khớp văn bản không đảm bảo AI đã diễn giải đúng. Kết quả trắc nghiệm này chưa phải xác nhận Mastered.</p></section>
   </article>;
 }
 
-function TutorFollowup({ course }: { course: TeachingCourse }) {
+function TutorFollowup({ course, active }: { course: TeachingCourse; active: boolean }) {
   const { config } = useAiSettings();
   const [question, setQuestion] = useState("");
   const [preview, setPreview] = useState<{ prompt: string; config: AiConfig } | null>(null);
@@ -190,7 +198,7 @@ function TutorFollowup({ course }: { course: TeachingCourse }) {
       setPreview(null); setConsent(false); setBusy(false); setAnswer(null);
     });
     return () => { cancelled = true; activeToken.current++; request.current?.abort(); };
-  }, [config, course]);
+  }, [config, course, active]);
   function prepare() {
     try {
       if (!config.apiKey.trim()) throw new Error("Nhập API key trong Cài đặt AI trước.");
@@ -200,7 +208,7 @@ function TutorFollowup({ course }: { course: TeachingCourse }) {
     } catch (error) { setMessage(error instanceof Error ? error.message : "Chưa thể chuẩn bị câu hỏi."); }
   }
   async function send() {
-    if (!preview || !consent || busy) return;
+    if (!active || !preview || !consent || busy) return;
     const snapshot = preview;
     if (snapshot.config.apiKey !== config.apiKey || snapshot.config.provider !== config.provider || snapshot.config.model !== config.model || snapshot.config.geminiFreeTier !== config.geminiFreeTier) { setPreview(null); setConsent(false); setMessage("Cấu hình đã đổi. Hãy duyệt lại yêu cầu."); return; }
     const current = ++token.current;
