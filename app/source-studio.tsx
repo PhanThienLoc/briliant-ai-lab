@@ -154,6 +154,10 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     }
   }
 
+  function clearGeneratedDraft() {
+    setCoverageDraft(null); setDraft(null); setSelectedIds([]); setEdits({});
+  }
+
   async function importArticleLink() {
     if (!sourceUrl.trim() || busy) return;
     if (text.trim() && !window.confirm("Đọc link sẽ thay nội dung nguồn đang nhập. Bản nháp đã lưu vẫn được giữ. Tiếp tục?")) return;
@@ -169,7 +173,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
       if(typeof result.text!=="string"||!result.text.trim()||result.text.length>MAX_SOURCE_CHARS||typeof result.title!=="string"||typeof result.url!=="string")throw new Error("Văn bản bài viết không hợp lệ.");
       setText(result.text);setSourceName(result.title.slice(0,160));setSourceUrl(result.url);setKind("article");
       if(!title.trim())setTitle(result.title.slice(0,100));
-      setSelectedFile(null);setNeedsExtract(false);setCoverageDraft(null);setDraft(null);setSelectedIds([]);setEdits({});
+      setSelectedFile(null); setNeedsExtract(false); clearGeneratedDraft();
       setCoverage({...ingestText(result.text),truncated:Boolean(result.truncated)});
       setMessage(result.truncated?"Đã đọc một phần bài viết và cắt ở giới hạn ký tự. Kiểm tra nội dung trước khi gửi AI.":"Đã đọc văn bản bài viết. Kiểm tra nguồn rồi mở bản đồ độ phủ; chưa gửi gì tới AI.");
     } catch(error){setMessage(controller.signal.aborted?"Đọc link quá thời gian. Nội dung cũ chưa bị thay đổi.":error instanceof Error?error.message:"Không đọc được bài viết.");}
@@ -182,6 +186,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     try {
       const result = await readSourceFile(selectedFile, { first: firstPage, last: lastPage });
       const content = ingestToText(result);
+      clearGeneratedDraft();
       setCoverage(result);
       setText(content);
       setNeedsExtract(false);
@@ -204,7 +209,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
       const imported = coverage ?? ingestText(text);
       const { blocks: _blocks, ...counts } = imported;
       void _blocks;
-      setDraft(null); setSelectedIds([]); setEdits({});
+      clearGeneratedDraft();
       setCoverageDraft({ version: 2, id, title, kind, ...(sourceUrl ? { sourceUrl } : {}), document, selectedSectionIds: [], coverage: counts, updatedAt: new Date().toISOString() });
       setMessage("Đã giữ đầy đủ các mục trong phần nguồn đã nhập. Chọn mục ở Bản đồ độ phủ tài liệu để tạo bài tập.");
 
@@ -260,14 +265,14 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
         <div className="studio-section-head"><span>BƯỚC 1 · CHỌN NGUỒN</span><h2 id="studio-form-heading">Ông muốn học từ đâu?</h2></div>
         <label>Loại nguồn<select value={kind} onChange={(event) => setKind(event.target.value as SourceKind)}>{Object.entries(kindLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
         <label>Tên khóa học<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ví dụ: Hiểu căn bản về attention" maxLength={100} /></label>
-        <label>Văn bản hoặc PDF<input type="file" accept=".pdf,.txt,.md,.markdown,.srt,.vtt" onChange={(event) => { setCoverage(null); setSelectedFile(event.target.files?.[0] ?? null); setNeedsExtract(Boolean(event.target.files?.[0])); setText(""); setMessage(""); }} disabled={busy} /></label>
-        {selectedFile && /\.pdf$/i.test(selectedFile.name) ? <div className="studio-two"><label>Trang bắt đầu<input type="number" min="1" step="1" value={firstPage} onChange={(event) => { setFirstPage(event.target.value); setNeedsExtract(true); setText(""); }} /></label><label>Trang kết thúc (để trống: tối đa {MAX_PDF_PAGES} trang)<input type="number" min="1" step="1" value={lastPage} onChange={(event) => { setLastPage(event.target.value); setNeedsExtract(true); setText(""); }} /></label></div> : null}
+        <label>Văn bản hoặc PDF<input type="file" accept=".pdf,.txt,.md,.markdown,.srt,.vtt" onChange={(event) => { clearGeneratedDraft(); setCoverage(null); setSelectedFile(event.target.files?.[0] ?? null); setNeedsExtract(Boolean(event.target.files?.[0])); setText(""); setMessage(""); }} disabled={busy} /></label>
+        {selectedFile && /\.pdf$/i.test(selectedFile.name) ? <div className="studio-two"><label>Trang bắt đầu<input type="number" min="1" step="1" value={firstPage} onChange={(event) => { setFirstPage(event.target.value); setNeedsExtract(true); setText(""); setCoverage(null); clearGeneratedDraft(); }} /></label><label>Trang kết thúc (để trống: tối đa {MAX_PDF_PAGES} trang)<input type="number" min="1" step="1" value={lastPage} onChange={(event) => { setLastPage(event.target.value); setNeedsExtract(true); setText(""); setCoverage(null); clearGeneratedDraft(); }} /></label></div> : null}
         {selectedFile ? <button className="studio-extract" type="button" onClick={() => void extractFile()} disabled={busy}>{busy ? "Đang trích xuất…" : "Trích xuất tệp →"}</button> : null}
         <div className="studio-two"><label>Tên nguồn<input value={sourceName} onChange={(event) => setSourceName(event.target.value)} placeholder="Tác giả, tên sách hoặc video" maxLength={160} /></label><label>Liên kết bài viết hoặc nguồn gốc<input disabled={busy} maxLength={2048} type="url" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder="https://..." /></label></div>
         <button className="studio-extract" type="button" disabled={busy || !sourceUrl.trim()} onClick={() => void importArticleLink()}>{busy?"Đang đọc nguồn…":"Đọc bài viết từ liên kết"}</button>
         <p className="studio-disclosure">Hỗ trợ bài công khai từ Medium, Towards Data Science, Distill, Wikipedia và tài liệu kỹ thuật chính thức. Trang chưa hỗ trợ hoặc yêu cầu đăng nhập: dán nội dung hoặc tải PDF. Bước này chưa gọi AI.</p>
         {coverage ? <div className="studio-message" role="status"><strong>Độ phủ trích xuất</strong><p>Đã xử lý {coverage.processedUnits}/{coverage.selectedUnits} đơn vị nguồn; {coverage.emptyUnits.length} đơn vị không có chữ.</p>{coverage.emptyUnits.length ? <p>Không có chữ tại: {coverage.emptyUnits.join(", ")}.</p> : null}{coverage.truncated ? <p>Nguồn đã bị cắt tại giới hạn ký tự. Đơn vị cuối được xử lý: {coverage.lastProcessedUnit}. Chọn khoảng nhỏ hơn để đọc tiếp.</p> : null}<p>Đây là độ phủ trích xuất, không phải độ phủ khóa học. PDF dùng số trang vật lý.</p></div> : null}
-        <label>Nội dung để học<textarea disabled={busy} aria-describedby="studio-source-help" value={text} onChange={(event) => { setText(event.target.value); setNeedsExtract(false); setCoverage(null); }} placeholder={kind === "video" ? "Dán transcript của video vào đây..." : "Dán văn bản từ nguồn vào đây hoặc trích xuất tệp ở trên..."} rows={8} maxLength={MAX_SOURCE_CHARS + 1} /></label>
+        <label>Nội dung để học<textarea disabled={busy} aria-describedby="studio-source-help" value={text} onChange={(event) => { setText(event.target.value); setNeedsExtract(false); setCoverage(null); clearGeneratedDraft(); }} placeholder={kind === "video" ? "Dán transcript của video vào đây..." : "Dán văn bản từ nguồn vào đây hoặc trích xuất tệp ở trên..."} rows={8} maxLength={MAX_SOURCE_CHARS + 1} /></label>
         <p id="studio-source-help" className="studio-source-help">{needsExtract ? "Trích xuất tệp trước hoặc dán văn bản để tiếp tục." : contentLength < MIN_SOURCE_CHARS ? `Thêm ít nhất ${MIN_SOURCE_CHARS - contentLength} ký tự nội dung để xem bản nháp.` : contentLength > MAX_SOURCE_CHARS ? "Nguồn quá dài. Hãy chia thành các phần nhỏ hơn." : "Đã đủ độ dài. Hãy xem bản nháp để kiểm tra từng đoạn nguồn."}</p>
         <div className="studio-form-foot"><span>{contentLength.toLocaleString("vi-VN")} / {MAX_SOURCE_CHARS.toLocaleString("vi-VN")} ký tự</span><button className="studio-button" aria-describedby="studio-source-help" onClick={create} disabled={busy || needsExtract || contentLength < MIN_SOURCE_CHARS || contentLength > MAX_SOURCE_CHARS}>{busy ? "Đang đọc…" : "Xem bản nháp →"}</button></div>
         <p className="studio-disclosure">PDF và bản nháp được xử lý trên thiết bị. Đọc link sẽ gửi URL đến máy chủ ứng dụng để lấy bài viết công khai; bước này không gửi đến AI. PDF có lớp chữ cho chọn tối đa 60 trang mỗi lượt (tệp tối đa 30 MB), khóa học lấy mẫu tối đa 6 đoạn và không bao phủ toàn bộ sách. Markdown chia theo tiêu đề mục; SRT/VTT giữ mốc thời gian của đoạn được chọn. Dùng nút đọc bài viết để nhập nội dung link được hỗ trợ; liên kết còn được lưu để dẫn nguồn. Video cần transcript; PDF scan cần OCR hoặc dán văn bản. Hãy kiểm tra câu hỏi và bản quyền nguồn trước khi dùng.</p>

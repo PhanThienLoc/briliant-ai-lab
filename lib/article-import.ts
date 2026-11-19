@@ -36,9 +36,9 @@ export async function extractArticleHtml(html: string): Promise<ArticleText> {
     .on("main", { element(e) { mainDepth++; e.onEndTag(() => { mainDepth--; }); } })
     .on("body", { element(e) { bodyDepth++; e.onEndTag(() => { bodyDepth--; }); } })
     .on("title", { element(e) { titleDepth++; e.onEndTag(() => { titleDepth--; }); } })
-    .on("p, h1, h2, h3, h4, h5, h6, li, pre, blockquote, br", { element() { append("\n\n"); } })
+    .on("p, h1, h2, h3, h4, h5, h6, li, pre, blockquote, br", { element(e) { append("\n\n"); if (e.tagName !== "br") e.onEndTag(() => append("\n\n")); } })
     .onDocument({ text(chunk) { append(chunk.text); } });
-  await parser.transform(new Response(html, {headers:{"Content-Type":"text/html;charset=utf-8"}})).arrayBuffer();
+  await parser.transform(new Response(html, {headers:{"Content-Type":"text/html;charset=utf-8"}})).body!.pipeTo(new WritableStream({ write() {} }));
   return {title:clean(title).slice(0,160),text:[article,main,body].map(clean).find(s=>s.length>=400)??""};
 }
 async function boundedBody(response: Response): Promise<string> {

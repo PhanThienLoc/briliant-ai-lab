@@ -27,13 +27,15 @@ export function teachingReviewDue(progress: TeachingProgress, key: string, now =
 export function recordTeachingCheck(storage: ReadStorage & Pick<Storage, "setItem">, key: string, review: boolean, now = new Date()): TeachingProgress {
   const current = parseTeachingProgress(storage.getItem(TEACHING_PROGRESS_KEY) ?? "{}");
   if (!key.trim() || key.length > 300 || !Number.isFinite(now.getTime())) throw new Error("Bằng chứng bài AI không hợp lệ.");
+  if (!review && Object.prototype.hasOwnProperty.call(current, key)) return current;
   const next: TeachingProgress = { ...current };
   if (review) {
     if (!teachingReviewDue(current, key, now.getTime())) throw new Error("Bài ôn chỉ mở sau 72 giờ từ lần kiểm tra đạt đầu tiên.");
     next[key] = { ...current[key], reviewedAt: now.toISOString() };
-  } else if (!Object.prototype.hasOwnProperty.call(current, key)) next[key] = { completedAt: now.toISOString() };
-  parseTeachingProgress(JSON.stringify(next));
-  try { storage.setItem(TEACHING_PROGRESS_KEY, JSON.stringify(next)); }
+  } else next[key] = { completedAt: now.toISOString() };
+  const serialized = JSON.stringify(next);
+  parseTeachingProgress(serialized);
+  try { storage.setItem(TEACHING_PROGRESS_KEY, serialized); }
   catch { throw new Error("Không lưu được tiến độ bài AI. Hãy kiểm tra dung lượng bộ nhớ."); }
   return next;
 }

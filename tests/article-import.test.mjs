@@ -28,6 +28,6 @@ test("native Worker HTML extraction keeps article prose and drops navigation and
  const {Miniflare}=await import("miniflare");
  const clean=(text)=>text.replace(/\r/g,"").replace(/[ \t]+/g," ").replace(/[ \t]*\n[ \t]*/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
  const mf=new Miniflare({modules:true,compatibilityDate:"2026-05-15",script:`const clean=${clean.toString()}; const extractArticleHtml=${extractArticleHtml.toString()}; export default {async fetch(request){return Response.json(await extractArticleHtml(await request.text()));}}`});
- try{const r=await mf.dispatchFetch("https://local.test",{method:"POST",body:`<html><head><title>Training</title></head><body><nav>NEVER SEND</nav><article><p>${prose}</p><script>STEAL KEY</script></article></body></html>`});const v=await r.json();assert.equal(v.title,"Training");assert.match(v.text,/training dataset/);assert.doesNotMatch(v.text,/NEVER SEND|STEAL KEY/);}
+ try{const r=await mf.dispatchFetch("https://local.test",{method:"POST",body:`<html><head><title>Training</title></head><body><nav>NEVER SEND</nav><article><p>${prose}</p>AFTER PARAGRAPH<h2>Heading</h2>AFTER HEADING<br>AFTER BREAK<script>STEAL KEY</script></article></body></html>`});const v=await r.json();assert.equal(v.title,"Training");assert.match(v.text,/training dataset/);assert.doesNotMatch(v.text,/NEVER SEND|STEAL KEY/);assert.match(v.text,/\.\n\nAFTER PARAGRAPH\n\nHeading\n\nAFTER HEADING\n\nAFTER BREAK/);}
  finally{await mf.dispose();}
 });

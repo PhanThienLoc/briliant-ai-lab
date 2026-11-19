@@ -30,3 +30,12 @@ test("Passport includes teaching progress and rejects invalid early review evide
  backup.data[TEACHING_PROGRESS_KEY]=JSON.stringify({"course:lesson":{completedAt:"2026-11-19T00:00:00Z",reviewedAt:"2026-11-19T01:00:00Z"}});
  assert.throws(()=>parseLearningBackupText(JSON.stringify(backup)));
 });
+
+test("repeated initial completion does not rewrite storage or fail when writes are blocked", () => {
+  const completedAt = "2026-11-19T00:00:00Z";
+  let writes = 0;
+  const storage = { getItem: () => JSON.stringify({"course:lesson": {completedAt}}), setItem: () => { writes++; throw Error("quota"); } };
+  const progress = recordTeachingCheck(storage, "course:lesson", false, new Date("2026-11-20T00:00:00Z"));
+  assert.equal(writes, 0);
+  assert.equal(progress["course:lesson"].completedAt, completedAt);
+});
