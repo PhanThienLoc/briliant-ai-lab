@@ -682,10 +682,6 @@ function SocraticLab({ lessonId, targetActivityId, initialMode, repairItem, retu
   const activityHeading = useRef<HTMLHeadingElement>(null);
   const lastFocusContext = useRef<{ key: string; independent: boolean } | null>(null);
   useEffect(() => {
-    if (window.matchMedia("(max-width: 900px)").matches) {
-      if (outlineRef.current) outlineRef.current.open = false;
-      if (supportRef.current) supportRef.current.open = false;
-    }
     workspaceHeading.current?.focus({ preventScroll: true });
   }, []);
 
@@ -979,7 +975,7 @@ function SocraticLab({ lessonId, targetActivityId, initialMode, repairItem, retu
     <div className="lab-screen">
       <header className="lab-topbar"><button className="back-link" onClick={onClose}>← {returnLabel}</button><div><span>{workspaceMode}</span><strong>{progress.completed.length}/{lesson.activities.length} hoạt động đạt</strong></div><span className="lab-count">{lessonEvidenceScore(progress, lesson.activities.length, lesson.activities.map((activity) => activity.id))}% bằng chứng</span></header>
       <div className="lab-columns">
-        <details ref={outlineRef} className="workspace-outline" open>
+        <details ref={outlineRef} className="workspace-outline">
           <summary>Nội dung bài học <span>{progress.completed.length}/{lesson.activities.length}</span></summary>
           <div className="outline-content"><p className="mono-label">R0 · {lesson.level}</p><h2>{lesson.title}</h2>
             <nav className="lesson-stepper" aria-label="Tiến độ bài học">
@@ -1048,7 +1044,7 @@ function SocraticLab({ lessonId, targetActivityId, initialMode, repairItem, retu
             )}
           </div>
         </section>
-        <details ref={supportRef} className="mental-column workspace-support" open>
+        <details ref={supportRef} className="mental-column workspace-support">
           <summary>Hướng dẫn &amp; dẫn chứng</summary>
           <div className="mental-content">
             <article className="workspace-guidance"><span className="mono-label">{workspaceMode}</span><h2>{reviewing ? "Tự suy luận lại" : "Mục tiêu của bước này"}</h2><p>{reviewing ? "Trả lời biến thể không dùng gợi ý. Kết quả ôn và thực hành độc lập quyết định mastery." : stage.evidence}</p>{repairItem && repairing ? <p><strong>Mắt xích cần sửa:</strong> {repairItem.prompt}</p> : null}</article>
