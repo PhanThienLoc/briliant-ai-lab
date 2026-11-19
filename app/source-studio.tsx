@@ -28,6 +28,12 @@ type SourceStudioProps = {
 export function SourceStudio({ mode = "create", navigationId, visible = true, libraryRevision = 0, initialCourseId, initialLessonId, onCreate, onLibrary, onLesson, onTrack }: SourceStudioProps) {
   const [inputMethod, setInputMethod] = useState<"file" | "link" | "text">("file");
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [stepDirection, setStepDirection] = useState<"forward" | "backward">("forward");
+  function goToStep(next: 1 | 2 | 3) {
+    if (next === step) return;
+    setStepDirection(next > step ? "forward" : "backward");
+    setStep(next);
+  }
   const [reviewKind, setReviewKind] = useState<"practice" | "ai">("practice");
   const [coverageDraft, setCoverageDraft] = useState<CoverageDraft | null>(null);
   const [coverage, setCoverage] = useState<IngestResult | null>(null);
@@ -142,7 +148,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     const result = readSourcePracticeDraft(() => window.localStorage);
     if (result.error || !result.draft) { setDraftStorageMessage(result.error || "Chưa có bản nháp đã lưu."); return; }
     const saved = result.draft;
-    setStep(3); setReviewKind("practice");
+    goToStep(3); setReviewKind("practice");
     setDraft(saved.course); setSelectedIds(saved.selectedIds); setEdits(saved.edits);
     pendingDraftFocus.current = true;
     setDraftStorageMessage("Đã khôi phục bản nháp đã lưu. Thay đổi mới cần lưu lại trước khi đóng trang.");
@@ -162,7 +168,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
   }
 
   function clearGeneratedDraft() {
-    setStep(1); setMessage("");
+    goToStep(1); setMessage("");
     setCoverageDraft(null); setDraft(null); setSelectedIds([]); setEdits({});
   }
 
@@ -219,7 +225,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
       void _blocks;
       clearGeneratedDraft();
       setCoverageDraft({ version: 2, id, title, kind, ...(sourceUrl ? { sourceUrl } : {}), document, selectedSectionIds: [], coverage: counts, updatedAt: new Date().toISOString() });
-      setStep(2);
+      goToStep(2);
       setMessage("Đã giữ đầy đủ các mục trong phần nguồn đã nhập. Chọn mục ở Bản đồ độ phủ tài liệu để tạo bài tập.");
 
     } catch (error) { setMessage(error instanceof Error ? error.message : "Chưa thể tạo khóa học."); }
@@ -258,15 +264,15 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     if (persist(courses.filter((item) => item.id !== course.id)) && activeId === course.id) setActiveId(null);
   }
 
-  return <div className="source-studio">
+  return <div className="source-studio" data-step-direction={stepDirection}>
     <header className="studio-heading"><div><span className="studio-eyebrow">{mode === "library" ? "HỌC TỪ NGUỒN · TRÊN THIẾT BỊ NÀY" : "TỪ NGUỒN ĐẾN HIỂU BIẾT"}</span><h1 ref={studioHeading} tabIndex={-1}>{mode === "library" ? "Thư viện của ông" : "Tạo khóa học"}</h1><p>{mode === "library" ? "Tiếp tục một khóa đã lưu hoặc khám phá các lộ trình AI & Data." : "Chọn nguồn, xem lại từng bài và lưu một lộ trình có dẫn chứng."}</p></div>{mode === "create" && onLibrary ? <button className="studio-extract" onClick={onLibrary}>Mở thư viện →</button> : null}</header>
     {mode === "create" ? <div className="studio-message"><button className="studio-extract" onClick={resumeDraft}>Khôi phục bản nháp đã lưu</button>{draftStorageMessage ? <p role="status">{draftStorageMessage}</p> : null}</div> : null}
     {message ? <p className="studio-message" role="status">{message}</p> : null}
     {missingTarget && mode === "library" ? <p className="studio-message" role="alert">{missingTarget}</p> : null}
     {mode === "library" && !active ? <CourseLibrary courses={courses} now={now} hydrated={hydrated} storageError={storageError} onOpen={chooseCourse} onRemove={removeCourse} onCreate={onCreate} onLesson={onLesson} onTrack={onTrack} /> : null}
-    {mode === "create" && <nav className="studio-steps" aria-label="Quy trình tạo khóa học">{(["Thêm nguồn", "Chọn nội dung", "Duyệt bài"] as const).map((label, index) => <button key={label} aria-current={step === index + 1 ? "step" : undefined} disabled={busy || (index === 1 && !coverageDraft) || (index === 2 && !draft && reviewKind !== "ai")} onClick={() => setStep((index + 1) as 1 | 2 | 3)}>{index + 1}. {label}</button>)}</nav>}
-    {mode === "create" && step !== 1 ? <button className="studio-extract" onClick={() => setStep(step === 3 ? 2 : 1)}>Quay lại {step === 3 ? "chọn nội dung" : "nguồn"}</button> : null}
-    {mode === "create" && step === 1 ? <div className="studio-resume"><button className="studio-extract" onClick={() => setStep(2)}>Mở bản nháp độ phủ đã lưu</button><button className="studio-extract" onClick={() => { setReviewKind("ai"); setStep(3); }}>Mở khóa AI đã lưu</button></div> : null}
+    {mode === "create" && <nav className="studio-steps" aria-label="Quy trình tạo khóa học">{(["Thêm nguồn", "Chọn nội dung", "Duyệt bài"] as const).map((label, index) => <button key={label} aria-current={step === index + 1 ? "step" : undefined} disabled={busy || (index === 1 && !coverageDraft) || (index === 2 && !draft && reviewKind !== "ai")} onClick={() => goToStep((index + 1) as 1 | 2 | 3)}>{index + 1}. {label}</button>)}</nav>}
+    {mode === "create" && step !== 1 ? <button className="studio-extract" onClick={() => goToStep(step === 3 ? 2 : 1)}>Quay lại {step === 3 ? "chọn nội dung" : "nguồn"}</button> : null}
+    {mode === "create" && step === 1 ? <div className="studio-resume"><button className="studio-extract" onClick={() => goToStep(2)}>Mở bản nháp độ phủ đã lưu</button><button className="studio-extract" onClick={() => { setReviewKind("ai"); goToStep(3); }}>Mở khóa AI đã lưu</button></div> : null}
     <div className="studio-layout create-layout" hidden={mode !== "create"} inert={mode !== "create"} style={mode !== "create" ? { display: "none" } : undefined}>
       <section hidden={step !== 1} style={step !== 1 ? { display: "none" } : undefined} className="studio-form" aria-labelledby="studio-form-heading">
         <div className="studio-section-head"><span>BƯỚC 1 · CHỌN NGUỒN</span><h2 id="studio-form-heading">Ông muốn học từ đâu?</h2></div>
@@ -301,14 +307,14 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
           <details><summary>Đối chiếu đoạn nguồn và câu hỏi bài {index + 1}</summary><blockquote>{item.excerpt}</blockquote><strong>{item.question}</strong><ol>{item.options.map((option, optionIndex) => <li key={optionIndex}>{option}{optionIndex === item.answer ? " — Đáp án theo nguồn" : ""}</li>)}</ol><p><strong>Bài ôn sau 72 giờ:</strong> {item.reviewOptions[item.reviewAnswer]}</p><small>Câu hỏi kiểm tra nhận biết ý trong nguồn; mục tiêu tự giải thích do ông đặt chưa được chấm tự động.</small></details>
         </article>;
       })}</div>
-      <footer><span>Chọn “Lưu bản nháp trên thiết bị” để khôi phục sau khi tải lại. Thay đổi sau đó cần lưu lại. Thư viện cũ chỉ đổi khi lưu khóa học thành công.</span><button className="studio-extract" onClick={keepDraft}>Lưu bản nháp trên thiết bị</button><button className="studio-extract" onClick={() => setStep(2)}>Quay lại chọn nội dung</button><button className="studio-extract" onClick={() => { try { clearSourcePracticeDraft(window.localStorage); setDraftStorageMessage("Đã xóa bản nháp lưu trên thiết bị."); } catch { setDraftStorageMessage("Không thể xóa bản nháp lưu trên thiết bị."); } }}>Xóa bản nháp đã lưu</button><button className="studio-button" disabled={!hydrated || Boolean(storageError) || selectedIds.length < 2 || !draft.title.trim()} onClick={saveDraft}>Lưu {selectedIds.length} bài vào thư viện →</button></footer>
+      <footer><span>Chọn “Lưu bản nháp trên thiết bị” để khôi phục sau khi tải lại. Thay đổi sau đó cần lưu lại. Thư viện cũ chỉ đổi khi lưu khóa học thành công.</span><button className="studio-extract" onClick={keepDraft}>Lưu bản nháp trên thiết bị</button><button className="studio-extract" onClick={() => goToStep(2)}>Quay lại chọn nội dung</button><button className="studio-extract" onClick={() => { try { clearSourcePracticeDraft(window.localStorage); setDraftStorageMessage("Đã xóa bản nháp lưu trên thiết bị."); } catch { setDraftStorageMessage("Không thể xóa bản nháp lưu trên thiết bị."); } }}>Xóa bản nháp đã lưu</button><button className="studio-button" disabled={!hydrated || Boolean(storageError) || selectedIds.length < 2 || !draft.title.trim()} onClick={saveDraft}>Lưu {selectedIds.length} bài vào thư viện →</button></footer>
     </section> : null}
     </div>
-    {mode === "create" ? <div hidden={step !== 2}><SourceCoverage value={coverageDraft} onChange={(next) => { setStep(2); setCoverageDraft(next); setDraft(null); setSelectedIds([]); setEdits({}); }} onPractice={(course) => { setStep(3); setReviewKind("practice"); pendingDraftFocus.current = true; setDraft(course); setSelectedIds(course.lessons.map((item) => item.id)); setEdits({}); }} />
+    {mode === "create" ? <div className="source-step" hidden={step !== 2}><SourceCoverage value={coverageDraft} onChange={(next) => { goToStep(2); setCoverageDraft(next); setDraft(null); setSelectedIds([]); setEdits({}); }} onPractice={(course) => { goToStep(3); setReviewKind("practice"); pendingDraftFocus.current = true; setDraft(course); setSelectedIds(course.lessons.map((item) => item.id)); setEdits({}); }} />
       <p>Bài tập nhận biết chạy trên thiết bị dùng 2–6 mục. Khóa AI dùng 1–3 mục, tối đa 12.000 ký tự và cần duyệt trước khi gửi.</p>
-      <button className="studio-button" disabled={!coverageDraft || coverageDraft.selectedSectionIds.length < 1 || coverageDraft.selectedSectionIds.length > 3} onClick={() => { setReviewKind("ai"); setStep(3); }}>Tiếp tục tạo bài bằng AI</button>
+      <button className="studio-button" disabled={!coverageDraft || coverageDraft.selectedSectionIds.length < 1 || coverageDraft.selectedSectionIds.length > 3} onClick={() => { setReviewKind("ai"); goToStep(3); }}>Tiếp tục tạo bài bằng AI</button>
     </div> : null}
-    {mode === "create" ? <div hidden={step !== 3 || reviewKind !== "ai"}><AiCourseStudio active={step === 3 && reviewKind === "ai" && visible} draft={coverageDraft} /></div> : null}
+    {mode === "create" ? <div className="source-step" hidden={step !== 3 || reviewKind !== "ai"}><AiCourseStudio active={step === 3 && reviewKind === "ai" && visible} draft={coverageDraft} /></div> : null}
     {mode === "library" && active && lesson ? <section className="studio-reader" aria-labelledby="studio-course-heading">
       <button className="back-link" onClick={() => { setActiveId(null); setChoice(null); setFeedback(null); }}>← Tất cả khóa học</button>
       <div className="studio-reader-head">

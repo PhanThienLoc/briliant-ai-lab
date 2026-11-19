@@ -992,7 +992,7 @@ function SocraticLab({ lessonId, targetActivityId, initialMode, repairItem, retu
         </details>
         <section className="inquiry-column" aria-labelledby="workspace-title">
           <header className="column-header"><div><p>{workspaceMode} · {reviewing ? "Biến thể độc lập" : `Hoạt động ${progress.currentIndex + 1} / ${lesson.activities.length}`}</p><h1 ref={workspaceHeading} tabIndex={-1} id="workspace-title">{lesson.title}</h1></div></header>
-          {showActivity ? <article className="activity-brief workspace-question"><span className="mono-label indigo-text">{stage.label}</span><h2 ref={activityHeading} tabIndex={-1}>{stage.prompt}</h2><p><strong>Mục tiêu:</strong> {stage.evidence}</p></article> : null}
+          {showActivity ? <article key={stage.id} className="activity-brief workspace-question"><span className="mono-label indigo-text">{stage.label}</span><h2 ref={activityHeading} tabIndex={-1}>{stage.prompt}</h2><p><strong>Mục tiêu:</strong> {stage.evidence}</p></article> : null}
           <div className="workspace-instrument"><ConceptInstrument lesson={lesson} /></div>
           <div className="conversation">
             {storageWarning ? <p role="status">{storageWarning}</p> : null}

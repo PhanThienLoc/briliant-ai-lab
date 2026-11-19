@@ -460,3 +460,18 @@ button.today-action { cursor: pointer; }
 .ai-teaching-reader > details > summary { font-weight: 650; }
 @media (max-width: 600px) { .lab-screen .lab-columns { padding: 8px; } }
 .lab-screen .lab-columns { min-height: 0; align-content: start; }
+
+/* Motion communicates activation and step direction; it never delays an action. */
+:root { --motion-press: 120ms; --motion-step: 180ms; }
+.source-studio { --step-shift: 12px; }
+.source-studio[data-step-direction="backward"] { --step-shift: -12px; }
+.source-studio .studio-form:not([hidden]), .source-studio .studio-draft, .source-studio .source-step:not([hidden]) { animation: source-step-enter var(--motion-step) ease-out; }
+@keyframes source-step-enter { from { opacity: .65; transform: translateX(var(--step-shift)); } to { opacity: 1; transform: translateX(0); } }
+:is(.source-studio, .lab-screen, .expansion-canvas) button:not(:disabled) { transition: scale var(--motion-press) ease-out; }
+:is(.source-studio, .lab-screen, .expansion-canvas) button:not(:disabled):active { scale: .98; }
+.lab-screen .workspace-question, .lab-screen .runtime-feedback, .source-studio .studio-message[role="status"] { animation: learning-feedback-enter 140ms ease-out; }
+@keyframes learning-feedback-enter { from { opacity: .65; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .source-studio *, .lab-screen *, .expansion-canvas * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  :is(.source-studio, .lab-screen, .expansion-canvas) button:not(:disabled):active { scale: 1; }
+}
