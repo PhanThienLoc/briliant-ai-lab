@@ -1,0 +1,872 @@
+{
+  "schema": "rust-anything/analyze@1",
+  "language": "ts",
+  "summary": {
+    "packages": 1,
+    "source_files": 48,
+    "test_files": 43,
+    "ui_files": 13,
+    "loc": 7377,
+    "units": 9,
+    "ready": 3,
+    "caution": 3,
+    "blocked": 1,
+    "keep": 2,
+    "parse_errors": 0
+  },
+  "packages": [
+    {
+      "name": "briliant-ai-lab",
+      "dir": "",
+      "order": 1,
+      "runtime": "node",
+      "workspace_deps": [],
+      "test_files": 43,
+      "units": [
+        "app/",
+        "app/api/ai-course/",
+        "app/api/source-url/",
+        "components/learning/",
+        "db/",
+        "lib/",
+        "public/",
+        "scripts/",
+        "worker/"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "id": "app/",
+      "package": "briliant-ai-lab",
+      "files": [
+        "app/chatgpt-auth.ts",
+        "app/expansion-workbench.tsx",
+        "app/layout.tsx",
+        "app/learning-dashboard.tsx",
+        "app/page.tsx",
+        "app/source-studio.tsx"
+      ],
+      "loc": 2115,
+      "wave": 2,
+      "readiness": 0,
+      "status": "keep",
+      "bridge": "keep-in-js",
+      "platforms": [
+        "browser",
+        "ui"
+      ],
+      "risks": [
+        {
+          "risk": "string-offsets",
+          "severity": "high",
+          "count": 21,
+          "samples": [
+            "app/expansion-workbench.tsx:113",
+            "app/learning-dashboard.tsx:139",
+            "app/learning-dashboard.tsx:279"
+          ]
+        },
+        {
+          "risk": "callbacks",
+          "severity": "medium",
+          "count": 59,
+          "samples": [
+            "app/expansion-workbench.tsx:14",
+            "app/expansion-workbench.tsx:337",
+            "app/expansion-workbench.tsx:337"
+          ]
+        },
+        {
+          "risk": "async",
+          "severity": "medium",
+          "count": 13,
+          "samples": [
+            "app/chatgpt-auth.ts:19",
+            "app/chatgpt-auth.ts:20",
+            "app/chatgpt-auth.ts:38"
+          ]
+        },
+        {
+          "risk": "ordered-collections",
+          "severity": "medium",
+          "count": 12,
+          "samples": [
+            "app/expansion-workbench.tsx:102",
+            "app/expansion-workbench.tsx:102",
+            "app/expansion-workbench.tsx:113"
+          ]
+        },
+        {
+          "risk": "exceptions",
+          "severity": "low",
+          "count": 28,
+          "samples": [
+            "app/chatgpt-auth.ts:61",
+            "app/chatgpt-auth.ts:81",
+            "app/expansion-workbench.tsx:18"
+          ]
+        },
+        {
+          "risk": "json",
+          "severity": "low",
+          "count": 7,
+          "samples": [
+            "app/expansion-workbench.tsx:21",
+            "app/expansion-workbench.tsx:402",
+            "app/learning-dashboard.tsx:715"
+          ]
+        }
+      ],
+      "internal_deps": [
+        "components/learning/",
+        "lib/"
+      ],
+      "workspace_deps": [],
+      "external_deps": [
+        "next"
+      ],
+      "direct_tests": 0,
+      "fan_in": 0,
+      "density": 1.0,
+      "priority": 15,
+      "exports": 0,
+      "bridgeable": 0,
+      "notes": [
+        "UI code: keep in the original language.",
+        "1 npm dependencies not in the crate table: check them by hand.",
+        "3 imports use aliases or virtual modules and were not followed."
+      ]
+    },
+    {
+      "id": "app/api/ai-course/",
+      "package": "briliant-ai-lab",
+      "files": [
+        "app/api/ai-course/route.ts"
+      ],
+      "loc": 18,
+      "wave": 1,
+      "readiness": 100,
+      "status": "caution",
+      "bridge": "napi-rs",
+      "platforms": [],
+      "risks": [
+        {
+          "risk": "async",
+          "severity": "medium",
+          "count": 3,
+          "samples": [
+            "app/api/ai-course/route.ts:5",
+            "app/api/ai-course/route.ts:11",
+            "app/api/ai-course/route.ts:18"
+          ]
+        },
+        {
+          "risk": "ordered-collections",
+          "severity": "medium",
+          "count": 1,
+          "samples": [
+            "app/api/ai-course/route.ts:13"
+          ]
+        },
+        {
+          "risk": "exceptions",
+          "severity": "low",
+          "count": 3,
+          "samples": [
+            "app/api/ai-course/route.ts:11",
+            "app/api/ai-course/route.ts:16",
+            "app/api/ai-course/route.ts:18"
+          ]
+        },
+        {
+          "risk": "json",
+          "severity": "low",
+          "count": 1,
+          "samples": [
+            "app/api/ai-course/route.ts:11"
+          ]
+        }
+      ],
+      "internal_deps": [
+        "lib/"
+      ],
+      "workspace_deps": [],
+      "external_deps": [],
+      "direct_tests": 1,
+      "fan_in": 0,
+      "density": 0.0,
+      "priority": 67,
+      "exports": 1,
+      "bridgeable": 0,
+      "notes": [
+        "Every export is JS-shaped (functions, plugin objects, iterators): porting the logic means adding a data-only function, an API change.",
+        "1 test files import it directly."
+      ]
+    },
+    {
+      "id": "app/api/source-url/",
+      "package": "briliant-ai-lab",
+      "files": [
+        "app/api/source-url/route.ts"
+      ],
+      "loc": 13,
+      "wave": 1,
+      "readiness": 94,
+      "status": "caution",
+      "bridge": "napi-rs",
+      "platforms": [],
+      "risks": [
+        {
+          "risk": "async",
+          "severity": "medium",
+          "count": 3,
+          "samples": [
+            "app/api/source-url/route.ts:4",
+            "app/api/source-url/route.ts:8",
+            "app/api/source-url/route.ts:11"
+          ]
+        },
+        {
+          "risk": "dynamic-typing",
+          "severity": "medium",
+          "count": 1,
+          "samples": [
+            "app/api/source-url/route.ts:10"
+          ]
+        },
+        {
+          "risk": "ordered-collections",
+          "severity": "medium",
+          "count": 1,
+          "samples": [
+            "app/api/source-url/route.ts:10"
+          ]
+        },
+        {
+          "risk": "exceptions",
+          "severity": "low",
+          "count": 2,
+          "samples": [
+            "app/api/source-url/route.ts:8",
+            "app/api/source-url/route.ts:11"
+          ]
+        },
+        {
+          "risk": "json",
+          "severity": "low",
+          "count": 1,
+          "samples": [
+            "app/api/source-url/route.ts:8"
+          ]
+        }
+      ],
+      "internal_deps": [
+        "lib/"
+      ],
+      "workspace_deps": [],
+      "external_deps": [],
+      "direct_tests": 0,
+      "fan_in": 0,
+      "density": 0.0,
+      "priority": 56,
+      "exports": 1,
+      "bridgeable": 0,
+      "notes": [
+        "Every export is JS-shaped (functions, plugin objects, iterators): porting the logic means adding a data-only function, an API change."
+      ]
+    },
+    {
+      "id": "components/learning/",
+      "package": "briliant-ai-lab",
+      "files": [
+        "components/learning/adaptive-hub.tsx",
+        "components/learning/ai-context.tsx",
+        "components/learning/ai-course-studio.tsx",
+        "components/learning/ai-settings.tsx",
+        "components/learning/course-library.tsx",
+        "components/learning/mastery-summary.tsx",
+        "components/learning/source-coverage.tsx",
+        "components/learning/today-session.tsx"
+      ],
+      "loc": 622,
+      "wave": 1,
+      "readiness": 60,
+      "status": "keep",
+      "bridge": "keep-in-js",
+      "platforms": [
+        "browser",
+        "ui"
+      ],
+      "risks": [
+        {
+          "risk": "string-offsets",
+          "severity": "high",
+          "count": 2,
+          "samples": [
+            "components/learning/ai-course-studio.tsx:171",
+            "components/learning/today-session.tsx:45"
+          ]
+        },
+        {
+          "risk": "callbacks",
+          "severity": "medium",
+          "count": 12,
+          "samples": [
+            "components/learning/adaptive-hub.tsx:112",
+            "components/learning/adaptive-hub.tsx:113",
+            "components/learning/adaptive-hub.tsx:114"
+          ]
+        },
+        {
+          "risk": "async",
+          "severity": "medium",
+          "count": 7,
+          "samples": [
+            "components/learning/adaptive-hub.tsx:50",
+            "components/learning/adaptive-hub.tsx:53",
+            "components/learning/adaptive-hub.tsx:68"
+          ]
+        },
+        {
+          "risk": "ordered-collections",
+          "severity": "medium",
+          "count": 1,
+          "samples": [
+            "components/learning/course-library.tsx:40"
+          ]
+        },
+        {
+          "risk": "exceptions",
+          "severity": "low",
+          "count": 18,
+          "samples": [
+            "components/learning/adaptive-hub.tsx:51",
+            "components/learning/adaptive-hub.tsx:57",
+            "components/learning/ai-context.tsx:24"
+          ]
+        },
+        {
+          "risk": "json",
+          "severity": "low",
+          "count": 4,
+          "samples": [
+            "components/learning/ai-course-studio.tsx:64",
+            "components/learning/ai-course-studio.tsx:64",
+            "components/learning/ai-course-studio.tsx:64"
+          ]
+        }
+      ],
+      "internal_deps": [
+        "lib/"
+      ],
+      "workspace_deps": [],
+      "external_deps": [],
+      "direct_tests": 0,
+      "fan_in": 1,
+      "density": 0.3,
+      "priority": 43,
+      "exports": 0,
+      "bridgeable": 0,
+      "notes": [
+        "UI code: keep in the original language.",
+        "4 imports use aliases or virtual modules and were not followed."
+      ]
+    },
+    {
+      "id": "db/",
+      "package": "briliant-ai-lab",
+      "files": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "loc": 14,
+      "wave": 0,
+      "readiness": 99,
+      "status": "ready",
+      "bridge": "napi-rs",
+      "platforms": [],
+      "risks": [
+        {
+          "risk": "exceptions",
+          "severity": "low",
+          "count": 1,
+          "samples": [
+            "db/index.ts:7"
+          ]
+        }
+      ],
+      "internal_deps": [],
+      "workspace_deps": [],
+      "external_deps": [
+        "drizzle-orm"
+      ],
+      "direct_tests": 0,
+      "fan_in": 0,
+      "density": 0.0,
+      "priority": 59,
+      "exports": 1,
+      "bridgeable": 1,
+      "notes": [
+        "1 npm dependencies not in the crate table: check them by hand.",
+        "1 imports use aliases or virtual modules and were not followed.",
+        "Leaf: imports no other unit."
+      ]
+    },
+    {
+      "id": "lib/",
+      "package": "briliant-ai-lab",
+      "files": [
+        "lib/adaptive-hub-fallback.ts",
+        "lib/adaptive-mastery.ts",
+        "lib/ai-course.ts",
+        "lib/ai-provider.ts",
+        "lib/article-import.ts",
+        "lib/code-coach.ts",
+        "lib/concept-evidence.ts",
+        "lib/course-library.ts",
+        "lib/coverage-practice.ts",
+        "lib/curriculum.ts",
+        "lib/diagnostic.ts",
+        "lib/expansion-catalog.ts",
+        "lib/expansion-progress.ts",
+        "lib/explanation-grader.mjs",
+        "lib/explanation-rubrics.mjs",
+        "lib/learning-backup.ts",
+        "lib/learning-repository.ts",
+        "lib/lesson-catalog.ts",
+        "lib/local-learning-log.ts",
+        "lib/mastery-engine.ts",
+        "lib/mastery.mjs",
+        "lib/ml-labs.mjs",
+        "lib/pdf-error.ts",
+        "lib/pdf-page-range.ts",
+        "lib/python-runner.ts",
+        "lib/r4-labs.mjs",
+        "lib/repair-clinic.mjs",
+        "lib/repair-queue.mjs",
+        "lib/source-course.ts",
+        "lib/source-document.ts",
+        "lib/source-draft-store.ts",
+        "lib/source-ingest.ts",
+        "lib/source-practice-draft.ts",
+        "lib/sql-sandbox.mjs",
+        "lib/structure-grader.mjs",
+        "lib/teaching-progress.ts",
+        "lib/today-queue.ts"
+      ],
+      "loc": 4237,
+      "wave": 0,
+      "readiness": 0,
+      "status": "caution",
+      "bridge": "napi-rs",
+      "platforms": [
+        "browser"
+      ],
+      "risks": [
+        {
+          "risk": "string-offsets",
+          "severity": "high",
+          "count": 76,
+          "samples": [
+            "lib/ai-course.ts:105",
+            "lib/article-import.ts:42",
+            "lib/article-import.ts:73"
+          ]
+        },
+        {
+          "risk": "regex-syntax",
+          "severity": "high",
+          "count": 4,
+          "samples": [
+            "lib/source-course.ts:98",
+            "lib/source-course.ts:143",
+            "lib/source-document.ts:153"
+          ]
+        },
+        {
+          "risk": "ordered-collections",
+          "severity": "medium",
+          "count": 90,
+          "samples": [
+            "lib/adaptive-mastery.ts:45",
+            "lib/ai-course.ts:25",
+            "lib/ai-course.ts:61"
+          ]
+        },
+        {
+          "risk": "async",
+          "severity": "medium",
+          "count": 35,
+          "samples": [
+            "lib/ai-provider.ts:38",
+            "lib/ai-provider.ts:46",
+            "lib/ai-provider.ts:56"
+          ]
+        },
+        {
+          "risk": "callbacks",
+          "severity": "medium",
+          "count": 19,
+          "samples": [
+            "lib/ai-course.ts:121",
+            "lib/learning-repository.ts:91",
+            "lib/learning-repository.ts:92"
+          ]
+        },
+        {
+          "risk": "dynamic-typing",
+          "severity": "medium",
+          "count": 4,
+          "samples": [
+            "lib/learning-repository.ts:119",
+            "lib/r4-labs.mjs:57",
+            "lib/source-course.ts:186"
+          ]
+        },
+        {
+          "risk": "class-inheritance",
+          "severity": "medium",
+          "count": 2,
+          "samples": [
+            "lib/ai-provider.ts:15",
+            "lib/article-import.ts:9"
+          ]
+        },
+        {
+          "risk": "exceptions",
+          "severity": "low",
+          "count": 152,
+          "samples": [
+            "lib/ai-course.ts:22",
+            "lib/ai-course.ts:38",
+            "lib/ai-course.ts:40"
+          ]
+        },
+        {
+          "risk": "json",
+          "severity": "low",
+          "count": 41,
+          "samples": [
+            "lib/ai-course.ts:33",
+            "lib/ai-course.ts:51",
+            "lib/ai-course.ts:65"
+          ]
+        }
+      ],
+      "internal_deps": [],
+      "workspace_deps": [],
+      "external_deps": [
+        "pdfjs-dist"
+      ],
+      "direct_tests": 34,
+      "fan_in": 5,
+      "density": 2.9,
+      "priority": 26,
+      "exports": 133,
+      "bridgeable": 118,
+      "notes": [
+        "1 npm dependencies not in the crate table: check them by hand.",
+        "4 imports use aliases or virtual modules and were not followed.",
+        "Leaf: imports no other unit.",
+        "34 test files import it directly."
+      ]
+    },
+    {
+      "id": "public/",
+      "package": "briliant-ai-lab",
+      "files": [
+        "public/pdf.worker.min.mjs",
+        "public/python-worker.mjs"
+      ],
+      "loc": 174,
+      "wave": 0,
+      "readiness": 0,
+      "status": "blocked",
+      "bridge": "napi-rs",
+      "platforms": [
+        "node",
+        "browser"
+      ],
+      "risks": [
+        {
+          "risk": "string-offsets",
+          "severity": "high",
+          "count": 245,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25"
+          ]
+        },
+        {
+          "risk": "dynamic-regex",
+          "severity": "high",
+          "count": 3,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:28"
+          ]
+        },
+        {
+          "risk": "dynamic-code",
+          "severity": "high",
+          "count": 3,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:28"
+          ]
+        },
+        {
+          "risk": "async",
+          "severity": "medium",
+          "count": 507,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25"
+          ]
+        },
+        {
+          "risk": "class-inheritance",
+          "severity": "medium",
+          "count": 419,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25"
+          ]
+        },
+        {
+          "risk": "ordered-collections",
+          "severity": "medium",
+          "count": 150,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25"
+          ]
+        },
+        {
+          "risk": "reflection",
+          "severity": "medium",
+          "count": 106,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25"
+          ]
+        },
+        {
+          "risk": "generators",
+          "severity": "medium",
+          "count": 41,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25"
+          ]
+        },
+        {
+          "risk": "dynamic-typing",
+          "severity": "medium",
+          "count": 34,
+          "samples": [
+            "public/pdf.worker.min.mjs:28",
+            "public/pdf.worker.min.mjs:28",
+            "public/pdf.worker.min.mjs:28"
+          ]
+        },
+        {
+          "risk": "number-semantics",
+          "severity": "low",
+          "count": 1547,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25"
+          ]
+        },
+        {
+          "risk": "exceptions",
+          "severity": "low",
+          "count": 447,
+          "samples": [
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25",
+            "public/pdf.worker.min.mjs:25"
+          ]
+        },
+        {
+          "risk": "json",
+          "severity": "low",
+          "count": 3,
+          "samples": [
+            "public/pdf.worker.min.mjs:28",
+            "public/python-worker.mjs:154",
+            "public/python-worker.mjs:158"
+          ]
+        }
+      ],
+      "internal_deps": [],
+      "workspace_deps": [],
+      "external_deps": [],
+      "direct_tests": 0,
+      "fan_in": 0,
+      "density": 886.8,
+      "priority": 43,
+      "exports": 0,
+      "bridgeable": 0,
+      "notes": [
+        "Uses dynamic code (eval, new Function or computed imports).",
+        "1 imports use aliases or virtual modules and were not followed.",
+        "Leaf: imports no other unit."
+      ]
+    },
+    {
+      "id": "scripts/",
+      "package": "briliant-ai-lab",
+      "files": [
+        "scripts/audit-content.mjs",
+        "scripts/bench-source.mjs",
+        "scripts/bench-sql.mjs"
+      ],
+      "loc": 151,
+      "wave": 1,
+      "readiness": 82,
+      "status": "ready",
+      "bridge": "napi-rs",
+      "platforms": [
+        "node"
+      ],
+      "risks": [
+        {
+          "risk": "string-offsets",
+          "severity": "high",
+          "count": 1,
+          "samples": [
+            "scripts/bench-source.mjs:8"
+          ]
+        },
+        {
+          "risk": "ordered-collections",
+          "severity": "medium",
+          "count": 9,
+          "samples": [
+            "scripts/audit-content.mjs:26",
+            "scripts/audit-content.mjs:27",
+            "scripts/audit-content.mjs:34"
+          ]
+        },
+        {
+          "risk": "async",
+          "severity": "medium",
+          "count": 6,
+          "samples": [
+            "scripts/audit-content.mjs:6",
+            "scripts/audit-content.mjs:6",
+            "scripts/audit-content.mjs:7"
+          ]
+        },
+        {
+          "risk": "json",
+          "severity": "low",
+          "count": 3,
+          "samples": [
+            "scripts/audit-content.mjs:6",
+            "scripts/bench-source.mjs:20",
+            "scripts/bench-sql.mjs:5"
+          ]
+        }
+      ],
+      "internal_deps": [
+        "lib/"
+      ],
+      "workspace_deps": [],
+      "external_deps": [],
+      "direct_tests": 0,
+      "fan_in": 0,
+      "density": 8.6,
+      "priority": 76,
+      "exports": 0,
+      "bridgeable": 0,
+      "notes": []
+    },
+    {
+      "id": "worker/",
+      "package": "briliant-ai-lab",
+      "files": [
+        "worker/index.ts"
+      ],
+      "loc": 33,
+      "wave": 0,
+      "readiness": 94,
+      "status": "ready",
+      "bridge": "napi-rs",
+      "platforms": [],
+      "risks": [
+        {
+          "risk": "async",
+          "severity": "medium",
+          "count": 3,
+          "samples": [
+            "worker/index.ts:17",
+            "worker/index.ts:24",
+            "worker/index.ts:29"
+          ]
+        },
+        {
+          "risk": "exceptions",
+          "severity": "low",
+          "count": 1,
+          "samples": [
+            "worker/index.ts:27"
+          ]
+        }
+      ],
+      "internal_deps": [],
+      "workspace_deps": [],
+      "external_deps": [
+        "vinext"
+      ],
+      "direct_tests": 0,
+      "fan_in": 0,
+      "density": 0.0,
+      "priority": 59,
+      "exports": 0,
+      "bridgeable": 0,
+      "notes": [
+        "1 npm dependencies not in the crate table: check them by hand.",
+        "Leaf: imports no other unit."
+      ]
+    }
+  ],
+  "start_here": [
+    "lib/"
+  ],
+  "dependencies": [
+    {
+      "name": "drizzle-orm",
+      "used_by": 1,
+      "crates": null,
+      "fit": "unknown",
+      "note": ""
+    },
+    {
+      "name": "pdfjs-dist",
+      "used_by": 1,
+      "crates": null,
+      "fit": "unknown",
+      "note": ""
+    },
+    {
+      "name": "vinext",
+      "used_by": 1,
+      "crates": null,
+      "fit": "unknown",
+      "note": ""
+    }
+  ]
+}

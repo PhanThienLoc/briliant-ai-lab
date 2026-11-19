@@ -1,0 +1,44 @@
+{
+  "node": "v24.22.3",
+  "samples": 30,
+  "warmup": 10,
+  "scope": "Synthetic CPU only, not browser INP, PDF decoding, network or Android; no performance claim from one run.",
+  "results": [
+    {
+      "name": "normalize-118k",
+      "p50ms": 1.4589320000000043,
+      "p95ms": 4.967013000000009,
+      "maxms": 4.984152999999992
+    },
+    {
+      "name": "ingest-118k",
+      "p50ms": 0.4840070000000196,
+      "p95ms": 0.6396889999999757,
+      "maxms": 2.3475720000000138
+    },
+    {
+      "name": "coverage-118k",
+      "p50ms": 1.5519520000000284,
+      "p95ms": 3.1244669999999815,
+      "maxms": 3.7349779999999555
+    },
+    {
+      "name": "coverage-60-headings",
+      "p50ms": 0.4598900000000299,
+      "p95ms": 0.7266320000000519,
+      "maxms": 2.06462700000003
+    },
+    {
+      "name": "grade-select",
+      "p50ms": 0.17373799999995754,
+      "p95ms": 0.29336500000005117,
+      "maxms": 0.4471499999999651
+    },
+    {
+      "name": "grade-join-aggregate",
+      "p50ms": 0.486108999999999,
+      "p95ms": 1.1934949999999844,
+      "maxms": 1.9154340000000047
+    }
+  ]
+}

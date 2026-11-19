@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { completeSourceLesson, finalizeSourceDraft, MIN_SOURCE_CHARS, MAX_SOURCE_CHARS, normalizeSourceText, parseSourceCourses, SOURCE_COURSES_KEY, type SourceCourse, type SourceKind } from "../lib/source-course";
 import { readSourceFile, ingestToText, type IngestResult } from "../lib/source-ingest";
 import { readSourcePracticeDraft, saveSourcePracticeDraft, clearSourcePracticeDraft } from "../lib/source-practice-draft";
@@ -50,7 +50,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
   const [sourceName, setSourceName] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [text, setText] = useState("");
-  const contentLength = normalizeSourceText(text).length;
+  const contentLength = useMemo(() => normalizeSourceText(text).length, [text]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [firstPage, setFirstPage] = useState("1");
   const [lastPage, setLastPage] = useState("");

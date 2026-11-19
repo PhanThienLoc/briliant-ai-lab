@@ -1,0 +1,321 @@
+{
+  "schema": "rust-anything/profile@1",
+  "language": "ts",
+  "command": [
+    "node",
+    "scripts/bench-source.mjs"
+  ],
+  "total_ms": 516.008,
+  "repo_pct": 31.050228310502277,
+  "hot": [
+    {
+      "name": "(anonymous):1",
+      "file": "scripts/bench-source.mjs",
+      "line": 1,
+      "unit": "scripts/",
+      "exported": false,
+      "self_ms": 2.3562009132420094,
+      "total_ms": 295.70321461187217,
+      "total_pct": 57.305936073059364,
+      "callers": [],
+      "advice": "Hot inside `scripts/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "documentFromText",
+      "file": "lib/source-document.ts",
+      "line": 109,
+      "unit": "lib/",
+      "exported": true,
+      "self_ms": 4.712401826484019,
+      "total_ms": 118.98814611872147,
+      "total_pct": 23.059360730593607,
+      "callers": [],
+      "advice": "Hot and exported by `lib/`: port it (`rust-anything bridge /workspace/sites/brilliantai-perf-resume/.sites-checkout lib/`), then check `rust-anything bench`."
+    },
+    {
+      "name": "(anonymous):13",
+      "file": "scripts/bench-source.mjs",
+      "line": 13,
+      "unit": "scripts/",
+      "exported": false,
+      "self_ms": 0.0,
+      "total_ms": 91.89183561643837,
+      "total_pct": 17.808219178082194,
+      "callers": [],
+      "advice": "Hot inside `scripts/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "normalizeSourceText",
+      "file": "lib/source-course.ts",
+      "line": 135,
+      "unit": "lib/",
+      "exported": true,
+      "self_ms": 64.79552511415525,
+      "total_ms": 83.64513242009133,
+      "total_pct": 16.210045662100455,
+      "callers": [],
+      "advice": "Hot and exported by `lib/`: port it (`rust-anything bridge /workspace/sites/brilliantai-perf-resume/.sites-checkout lib/`), then check `rust-anything bench`."
+    },
+    {
+      "name": "(anonymous):11",
+      "file": "scripts/bench-source.mjs",
+      "line": 11,
+      "unit": "scripts/",
+      "exported": false,
+      "self_ms": 0.0,
+      "total_ms": 83.64513242009133,
+      "total_pct": 16.210045662100455,
+      "callers": [],
+      "advice": "Hot inside `scripts/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "gradeAcrossDatasets",
+      "file": "lib/sql-sandbox.mjs",
+      "line": 308,
+      "unit": "lib/",
+      "exported": false,
+      "self_ms": 1.1781004566210047,
+      "total_ms": 62.43932420091325,
+      "total_pct": 12.100456621004568,
+      "callers": [
+        {
+          "name": "gradeSouthOrderQuery",
+          "file": "lib/sql-sandbox.mjs",
+          "line": 318,
+          "ms": 35.34301369863014
+        },
+        {
+          "name": "gradeTierRevenueQuery",
+          "file": "lib/sql-sandbox.mjs",
+          "line": 319,
+          "ms": 27.09631050228311
+        }
+      ],
+      "advice": "Hot inside `lib/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "executeSelect",
+      "file": "lib/sql-sandbox.mjs",
+      "line": 266,
+      "unit": "lib/",
+      "exported": true,
+      "self_ms": 3.534301369863014,
+      "total_ms": 61.261223744292245,
+      "total_pct": 11.872146118721462,
+      "callers": [
+        {
+          "name": "gradeAcrossDatasets",
+          "file": "lib/sql-sandbox.mjs",
+          "line": 308,
+          "ms": 61.261223744292245
+        }
+      ],
+      "advice": "Called in a loop by `gradeAcrossDatasets` (lib/sql-sandbox.mjs:308): a call per item would cost more than the work. Batch it, keeping the items in Rust and using all cores: `rust-anything bridge /workspace/sites/brilliantai-perf-resume/.sites-checkout lib/ --batch executeSelect:rawQuery`, then prepare the items once in a `ExecuteSelectIndex` in port.rs. Better still, port `gradeAcrossDatasets` with it."
+    },
+    {
+      "name": "executeSelectInternal",
+      "file": "lib/sql-sandbox.mjs",
+      "line": 107,
+      "unit": "lib/",
+      "exported": false,
+      "self_ms": 16.493406392694066,
+      "total_ms": 57.726922374429236,
+      "total_pct": 11.187214611872147,
+      "callers": [
+        {
+          "name": "executeSelect",
+          "file": "lib/sql-sandbox.mjs",
+          "line": 266,
+          "ms": 57.726922374429236
+        }
+      ],
+      "advice": "Hot inside `lib/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "gradeSouthOrderQuery",
+      "file": "lib/sql-sandbox.mjs",
+      "line": 318,
+      "unit": "lib/",
+      "exported": true,
+      "self_ms": 0.0,
+      "total_ms": 35.34301369863014,
+      "total_pct": 6.8493150684931505,
+      "callers": [],
+      "advice": "Hot and exported by `lib/`: port it (`rust-anything bridge /workspace/sites/brilliantai-perf-resume/.sites-checkout lib/`), then check `rust-anything bench`."
+    },
+    {
+      "name": "(anonymous):15",
+      "file": "scripts/bench-source.mjs",
+      "line": 15,
+      "unit": "scripts/",
+      "exported": false,
+      "self_ms": 0.0,
+      "total_ms": 35.34301369863014,
+      "total_pct": 6.8493150684931505,
+      "callers": [],
+      "advice": "Hot inside `scripts/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "(anonymous):14",
+      "file": "scripts/bench-source.mjs",
+      "line": 14,
+      "unit": "scripts/",
+      "exported": false,
+      "self_ms": 1.1781004566210047,
+      "total_ms": 28.274410958904113,
+      "total_pct": 5.479452054794521,
+      "callers": [],
+      "advice": "Hot inside `scripts/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "gradeTierRevenueQuery",
+      "file": "lib/sql-sandbox.mjs",
+      "line": 319,
+      "unit": "lib/",
+      "exported": true,
+      "self_ms": 0.0,
+      "total_ms": 27.09631050228311,
+      "total_pct": 5.251141552511416,
+      "callers": [
+        {
+          "name": "workloads",
+          "file": "scripts/bench-source.mjs",
+          "line": 16,
+          "ms": 27.09631050228311
+        }
+      ],
+      "advice": "Mostly called by `workloads` (scripts/bench-source.mjs:16): port `workloads` together with `gradeTierRevenueQuery`, so one call into Rust does the whole loop."
+    },
+    {
+      "name": "workloads",
+      "file": "scripts/bench-source.mjs",
+      "line": 16,
+      "unit": "scripts/",
+      "exported": false,
+      "self_ms": 0.0,
+      "total_ms": 27.09631050228311,
+      "total_pct": 5.251141552511416,
+      "callers": [],
+      "advice": "Hot inside `scripts/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "buildSourceDocument",
+      "file": "lib/source-document.ts",
+      "line": 59,
+      "unit": "lib/",
+      "exported": true,
+      "self_ms": 1.1781004566210047,
+      "total_ms": 27.096310502283103,
+      "total_pct": 5.251141552511415,
+      "callers": [
+        {
+          "name": "documentFromText",
+          "file": "lib/source-document.ts",
+          "line": 109,
+          "ms": 27.096310502283103
+        }
+      ],
+      "advice": "Mostly called by `documentFromText` (lib/source-document.ts:109): port `documentFromText` together with `buildSourceDocument`, so one call into Rust does the whole loop."
+    },
+    {
+      "name": "splitBlock",
+      "file": "lib/source-document.ts",
+      "line": 21,
+      "unit": "lib/",
+      "exported": false,
+      "self_ms": 21.205808219178085,
+      "total_ms": 24.740109589041097,
+      "total_pct": 4.794520547945206,
+      "callers": [
+        {
+          "name": "buildSourceDocument",
+          "file": "lib/source-document.ts",
+          "line": 59,
+          "ms": 24.740109589041097
+        }
+      ],
+      "advice": "Hot inside `lib/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "ingestText",
+      "file": "lib/source-ingest.ts",
+      "line": 36,
+      "unit": "lib/",
+      "exported": true,
+      "self_ms": 1.1781004566210047,
+      "total_ms": 23.562009132420094,
+      "total_pct": 4.566210045662101,
+      "callers": [],
+      "advice": "Hot and exported by `lib/`: port it (`rust-anything bridge /workspace/sites/brilliantai-perf-resume/.sites-checkout lib/`), then check `rust-anything bench`."
+    },
+    {
+      "name": "(anonymous):12",
+      "file": "scripts/bench-source.mjs",
+      "line": 12,
+      "unit": "scripts/",
+      "exported": false,
+      "self_ms": 0.0,
+      "total_ms": 23.562009132420094,
+      "total_pct": 4.566210045662101,
+      "callers": [],
+      "advice": "Hot inside `scripts/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "qualify",
+      "file": "lib/sql-sandbox.mjs",
+      "line": 37,
+      "unit": "lib/",
+      "exported": false,
+      "self_ms": 17.671506849315072,
+      "total_ms": 22.38390867579909,
+      "total_pct": 4.337899543378996,
+      "callers": [
+        {
+          "name": "executeSelectInternal",
+          "file": "lib/sql-sandbox.mjs",
+          "line": 107,
+          "ms": 22.38390867579909
+        }
+      ],
+      "advice": "Hot inside `lib/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "(anonymous):131",
+      "file": "lib/sql-sandbox.mjs",
+      "line": 131,
+      "unit": "lib/",
+      "exported": false,
+      "self_ms": 1.1781004566210047,
+      "total_ms": 11.781004566210047,
+      "total_pct": 2.2831050228310503,
+      "callers": [
+        {
+          "name": "executeSelectInternal",
+          "file": "lib/sql-sandbox.mjs",
+          "line": 107,
+          "ms": 11.781004566210047
+        }
+      ],
+      "advice": "Hot inside `lib/`: port the exported function that calls it, with it."
+    },
+    {
+      "name": "(anonymous):159",
+      "file": "lib/sql-sandbox.mjs",
+      "line": 159,
+      "unit": "lib/",
+      "exported": false,
+      "self_ms": 1.1781004566210047,
+      "total_ms": 9.424803652968038,
+      "total_pct": 1.82648401826484,
+      "callers": [
+        {
+          "name": "executeSelectInternal",
+          "file": "lib/sql-sandbox.mjs",
+          "line": 107,
+          "ms": 9.424803652968038
+        }
+      ],
+      "advice": "Hot inside `lib/`: port the exported function that calls it, with it."
+    }
+  ]
+}
