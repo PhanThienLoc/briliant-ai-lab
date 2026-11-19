@@ -1,0 +1,1 @@
+{"workload":"SQL SELECT grade, 100 calls/batch, 30 warm batches","p50ms":0.25445651999999996,"p95ms":0.35356112000000023,"node":"v24.22.3"}

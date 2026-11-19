@@ -383,13 +383,14 @@ function SourceReviews({ onOpen }: { onOpen: (courseId: string, lessonId: string
 function HubView({ adaptive, snapshots, expansionProgress, repairs, history, diagnostic, onDiagnostic, onStart, onAdaptiveLesson, onExpansion, onRecent, onRepair, onMap, onChecklist, onHistory, onStudio, onLibrary }: { adaptive: AdaptiveHubState; snapshots: LessonSnapshot[]; expansionProgress: ExpansionProgress; repairs: RepairItem[]; history: LocalLearningEvent[]; diagnostic: DiagnosticResult | null; onDiagnostic: () => void; onStart: (lessonId: string) => void; onAdaptiveLesson: (lessonId: string, activityId: string | null, mode: "practice" | "review") => void; onExpansion: (labId: ExpansionLabId, reviewDue: boolean, edgeId?: ExpansionEdgeId) => void; onRecent: (lessonId: string) => void; onRepair: (lessonId: string, activityId: string) => void; onMap: () => void; onChecklist: () => void; onHistory: () => void; onStudio: (courseId?: string, lessonId?: string) => void; onLibrary: () => void }) {
   return (
     <div className="hub-canvas">
-      <header className="template-page-header"><h1>Hôm nay, học sâu hơn một chút.</h1><p>Tiếp tục bài học đang mở hoặc xem các nội dung ôn tập.</p></header>
+      <header className="template-page-header"><h1>Hôm nay</h1><p>Một bài để bắt đầu. Phần còn lại có thể xem khi cần.</p></header>
       <AdaptiveHub state={adaptive} onLesson={onAdaptiveLesson} onExpansion={onExpansion} onDiagnostic={onDiagnostic} />
       {adaptive.hydrated ? <>
-        <div className="home-focus-grid">
+        <details className="home-analytics"><summary>Xem hàng ôn và chủ đề khác</summary><div className="home-focus-grid">
           <ReviewQueue snapshots={snapshots} expansionProgress={expansionProgress} onStart={onAdaptiveLesson} onExpansion={onExpansion} limit={3} />
           <ActiveTopics snapshots={snapshots} recommendedLessonId={adaptive.queue.items[0]?.target?.kind === "lesson" ? adaptive.queue.items[0].target.id : diagnostic?.recommendedLessonId} onStart={onStart} onMap={onMap} />
         </div>
+        </details>
         <SourceCourseHub onLibrary={onLibrary} onCreate={() => onStudio()} />
         <details className="home-analytics"><summary>Tiến độ và công cụ học tập</summary>
           <DiagnosticSummary result={diagnostic} onOpen={onDiagnostic} onStart={onStart} />

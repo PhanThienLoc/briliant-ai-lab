@@ -20,7 +20,7 @@ export function TodaySession({
       <header>
         <div>
           <span className="mono-label">LỘ TRÌNH HÔM NAY</span>
-          <h2 id="today-session-title">Phiên học có chủ đích</h2>
+          <h2 id="today-session-title">Bài tiếp theo</h2>
         </div>
         <strong aria-label={`${queue.totalMinutes} trên ${queue.budgetMinutes} phút`}>
           {queue.totalMinutes} / {queue.budgetMinutes} phút dự kiến
@@ -38,7 +38,7 @@ export function TodaySession({
                   className="today-action"
                   aria-current={index === 0 && item.target ? "step" : undefined}
                   aria-label={item.target ? `${index + 1}. ${item.title}. ${item.minutes} phút. Bằng chứng cần tạo: ${item.evidenceNeeded}` : undefined}
-                  aria-describedby={item.target ? reasonId : undefined}
+
                   onClick={item.target ? () => onOpen(item) : undefined}
                 >
                   <span className="today-order">
@@ -49,15 +49,11 @@ export function TodaySession({
                       {actionLabels[item.type]} · {item.minutes} phút
                     </small>
                     <strong>{item.title}</strong>
-                    <span className="today-reason" id={reasonId}>
-                      <b>Vì sao chọn bài này:</b> {item.reason}
-                    </span>
-                    <span className="today-evidence">
-                      Bằng chứng cần tạo: {item.evidenceNeeded}
-                    </span>
-                    {index === 0 && item.target ? <span className="today-continue">Tiếp tục học →</span> : null}
+
+                    {index === 0 && item.target ? <span className="today-continue">Bắt đầu học</span> : null}
                   </span>
                 </Action>
+                <details className="today-context"><summary>Vì sao chọn bài này?</summary><p id={reasonId}>{item.reason}</p><p>Bằng chứng cần tạo: {item.evidenceNeeded}</p></details>
               </li>
             );
           })}

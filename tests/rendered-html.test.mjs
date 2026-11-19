@@ -30,8 +30,8 @@ test("renders the Vietnamese learning dashboard", async () => {
 
   assert.match(html, /<html[^>]*lang=["']vi["']/i);
   assert.match(html, /<title>BriliantAI Lab<\/title>/i);
-  assert.match(html, /Hôm nay, học sâu hơn một chút\./);
-  assert.match(html, /Tiếp tục bài học đang mở hoặc xem các nội dung ôn tập\./);
+  assert.match(html, /<h1>Hôm nay<\/h1>/);
+  assert.match(html, /Một bài để bắt đầu\./);
   for (const label of ["Hôm nay", "Thư viện", "Tạo khóa học", "Ôn tập", "Công cụ học tập"]) assert.ok(html.includes(label));
   assert.match(html, /Đang đọc tiến độ trên thiết bị này/);
   assert.match(html, /aria-busy="true"/);

@@ -427,3 +427,11 @@ button.today-action { cursor: pointer; }
   .lab-feedback,
   .sql-editor aside p
 ) { font-size: 16px; line-height: 1.65; }
+
+/* Focus checkpoint: details remain available without competing with the next action. */
+.today-context { padding: 0 20px 12px; }
+.today-context summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-size: 14px; color: var(--primary); }
+.today-context p { font-size: 16px; line-height: 1.6; margin: 8px 0; }
+.today-session > header strong, .metric-pair strong { font-variant-numeric: tabular-nums; }
+.transform-workspace svg { background: var(--surface-lowest); }
+.bfs-workspace > svg { background-color: var(--surface-lowest); background-image: radial-gradient(circle, var(--outline-variant) .7px, transparent .8px); background-size: 20px 20px; }
