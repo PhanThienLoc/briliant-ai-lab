@@ -443,3 +443,10 @@ button.today-action { cursor: pointer; }
 .create-layout { grid-template-columns: minmax(0,1fr); }
 .studio-steps button:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
 .studio-resume { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.source-methods { display: flex; flex-wrap: wrap; gap: 10px; margin-block: 20px; }
+.source-methods button { min-height: 48px; padding: 12px 18px; border: 1px solid var(--outline); border-radius: 10px; background: var(--surface-lowest); color: var(--on-surface); font: inherit; }
+.source-methods button[aria-pressed="true"] { border-color: var(--primary); background: var(--secondary-container); color: var(--on-surface); font-weight: 700; }
+.source-methods button:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.studio-source-metadata summary { min-height: 44px; padding-block: 12px; cursor: pointer; }
+@media (max-width: 600px) { .source-methods { flex-direction: column; } }
