@@ -6,6 +6,7 @@ import { filterSourceCourses, sourceCourseProgress } from "../../lib/course-libr
 import type { SourceCourse, SourceKind } from "../../lib/source-course";
 import { expansionLabs, expansionTracks, type ExpansionLabId } from "../../lib/expansion-catalog";
 import { lessonCatalog } from "../../lib/lesson-catalog";
+import { SubjectStudy } from "./subject-study";
 
 export const sourceKindLabels: Record<SourceKind, string> = { video: "Video / transcript", paper: "Bài báo khoa học", book: "Sách / chương sách", article: "Bài viết" };
 
@@ -20,7 +21,7 @@ const trackStudies: Record<string, string> = {
 
 function SubjectCover({ kind, label }: { kind: string; label: string }) {
   return <div className={`library-cover cover-${kind}`}><span>{label}</span>
-    {trackStudies[kind] && <svg aria-hidden="true" viewBox="0 0 124 62" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"><path d={trackStudies[kind]} /></svg>}
+    {trackStudies[kind] ? <SubjectStudy topic={kind} compact /> : <svg aria-hidden="true" viewBox="0 0 300 130" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M60 28q45-17 90 3 45-20 90-3v76q-45-17-90 2-45-19-90-2V28Zm90 3v75M78 46q27-7 51 3M78 61q27-7 51 3M78 76q27-7 51 3M170 46q25-10 50-4M170 61q25-10 50-4M170 76q25-10 50-4" /><circle cx="253" cy="27" r="15" strokeDasharray="3 4" /><path d="M35 99h10m-5-5v10" /></svg>}
   </div>;
 }
 

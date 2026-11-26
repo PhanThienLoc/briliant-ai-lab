@@ -1,0 +1,1 @@
+Manrope variable font, @fontsource-variable/manrope 5.3.0, npm registry. SIL Open Font License 1.1, included in OFL.txt.

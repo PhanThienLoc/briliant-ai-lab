@@ -361,7 +361,7 @@ function RecentDialogues({ entries, onStart, onHistory }: { entries: LocalLearni
 }
 
 function SourceCourseHub({ onLibrary, onCreate }: { onLibrary: () => void; onCreate: () => void }) {
-  return <section className="source-hub" aria-labelledby="source-hub-title"><div><h2 id="source-hub-title">Học theo lộ trình của ông</h2><p>Mở khóa học đã lưu hoặc tạo bài học từ một nguồn mới.</p></div><div className="course-onward"><button className="outline-action" onClick={onLibrary}>Mở thư viện →</button><button className="primary-action" onClick={onCreate}>Tạo khóa học →</button></div></section>;
+  return <section className="source-hub" aria-labelledby="source-hub-title"><div className="section-title-row"><div><h2 id="source-hub-title">Không gian học của ông</h2><p>Tiếp tục một lộ trình, hoặc bắt đầu từ tài liệu của mình.</p></div></div><div className="home-course-shelf"><button className="home-course-tile" onClick={onLibrary}><span className="shelf-art" aria-hidden="true"><svg viewBox="0 0 80 80" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 60V17m0 43h47M17 60l37-32m-13 0h13v13M30 60V45m13 15V34"/></svg></span><span><small>THƯ VIỆN CỦA ÔNG</small><strong>Những ý tưởng đang khám phá</strong><span>Khóa đã lưu & lộ trình AI, Data</span><b>Mở thư viện</b></span></button><button className="home-course-tile" onClick={onCreate}><span className="shelf-art shelf-art-blue" aria-hidden="true"><svg viewBox="0 0 80 80" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 14h28l12 12v40H20zM48 14v14h12M29 38h22M29 46h15M29 54h18"/><path d="M62 38v16m-8-8h16"/></svg></span><span><small>HỌC TỪ NGUỒN</small><strong>Biến tài liệu thành bài học</strong><span>PDF, bài viết & bản chép lời video</span><b>Tạo khóa học</b></span></button></div></section>;
 }
 
 function SourceReviews({ onOpen }: { onOpen: (courseId: string, lessonId: string) => void }) {
@@ -383,7 +383,7 @@ function SourceReviews({ onOpen }: { onOpen: (courseId: string, lessonId: string
 function HubView({ adaptive, snapshots, expansionProgress, repairs, history, diagnostic, onDiagnostic, onStart, onAdaptiveLesson, onExpansion, onRecent, onRepair, onMap, onChecklist, onHistory, onStudio, onLibrary }: { adaptive: AdaptiveHubState; snapshots: LessonSnapshot[]; expansionProgress: ExpansionProgress; repairs: RepairItem[]; history: LocalLearningEvent[]; diagnostic: DiagnosticResult | null; onDiagnostic: () => void; onStart: (lessonId: string) => void; onAdaptiveLesson: (lessonId: string, activityId: string | null, mode: "practice" | "review") => void; onExpansion: (labId: ExpansionLabId, reviewDue: boolean, edgeId?: ExpansionEdgeId) => void; onRecent: (lessonId: string) => void; onRepair: (lessonId: string, activityId: string) => void; onMap: () => void; onChecklist: () => void; onHistory: () => void; onStudio: (courseId?: string, lessonId?: string) => void; onLibrary: () => void }) {
   return (
     <div className="hub-canvas">
-      <header className="template-page-header"><h1>Hôm nay</h1><p>Một bài để bắt đầu. Phần còn lại có thể xem khi cần.</p></header>
+      <header className="template-page-header"><span className="studio-eyebrow">KHÔNG GIAN HỌC CÁ NHÂN</span><h1>Hôm nay, học sâu hơn một chút.</h1><p>Tiếp tục bài học đang mở hoặc trở lại điều cần ôn.</p></header>
       <AdaptiveHub state={adaptive} onLesson={onAdaptiveLesson} onExpansion={onExpansion} onDiagnostic={onDiagnostic} />
       {adaptive.hydrated ? <>
         <details className="home-analytics"><summary>Xem hàng ôn và chủ đề khác</summary><div className="home-focus-grid">

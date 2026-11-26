@@ -1,6 +1,7 @@
 "use client";
 
 import type { TodayQueue, TodayQueueItem } from "../../lib/today-queue";
+import { SubjectStudy } from "./subject-study";
 
 const actionLabels: Record<TodayQueueItem["type"], string> = {
   review: "Ôn tập", repair: "Sửa lỗi hiểu", bridge: "Bài nối", practice: "Luyện tập", new: "Bài mới", reflection: "Tự phản tư",
@@ -34,6 +35,7 @@ export function TodaySession({
             const reasonId = `today-reason-${index}`;
             return (
               <li key={item.id} className={index === 0 ? "today-lead" : undefined}>
+                <div className={index === 0 ? "today-lead-layout" : "today-secondary-layout"}>
                 <Action
                   className="today-action"
                   aria-current={index === 0 && item.target ? "step" : undefined}
@@ -41,18 +43,18 @@ export function TodaySession({
 
                   onClick={item.target ? () => onOpen(item) : undefined}
                 >
-                  <span className="today-order">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
                   <span>
                     <small>
                       {actionLabels[item.type]} · {item.minutes} phút
                     </small>
                     <strong>{item.title}</strong>
 
-                    {index === 0 && item.target ? <span className="today-continue">Bắt đầu học</span> : null}
+                    {index === 0 ? <span className="today-lead-description">{item.reason}</span> : null}
+                    {index === 0 && item.target ? <span className="today-continue">{item.type === "review" ? "Ôn ngay" : item.type === "practice" ? "Tiếp tục học" : "Bắt đầu học"}</span> : null}
                   </span>
                 </Action>
+                {index === 0 ? <SubjectStudy topic={item.target?.id ?? item.trackId} /> : null}
+                </div>
                 <details className="today-context"><summary>Vì sao chọn bài này?</summary><p id={reasonId}>{item.reason}</p><p>Bằng chứng cần tạo: {item.evidenceNeeded}</p></details>
               </li>
             );

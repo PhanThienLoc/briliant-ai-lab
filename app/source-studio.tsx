@@ -264,15 +264,15 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     if (persist(courses.filter((item) => item.id !== course.id)) && activeId === course.id) setActiveId(null);
   }
 
-  return <div className="source-studio" data-step-direction={stepDirection}>
-    <header className="studio-heading"><div><span className="studio-eyebrow">{mode === "library" ? "HỌC TỪ NGUỒN · TRÊN THIẾT BỊ NÀY" : "TỪ NGUỒN ĐẾN HIỂU BIẾT"}</span><h1 ref={studioHeading} tabIndex={-1}>{mode === "library" ? "Thư viện của ông" : "Tạo khóa học"}</h1><p>{mode === "library" ? "Tiếp tục một khóa đã lưu hoặc khám phá các lộ trình AI & Data." : "Chọn nguồn, xem lại từng bài và lưu một lộ trình có dẫn chứng."}</p></div>{mode === "create" && onLibrary ? <button className="studio-extract" onClick={onLibrary}>Mở thư viện →</button> : null}</header>
-    {mode === "create" ? <div className="studio-message"><button className="studio-extract" onClick={resumeDraft}>Khôi phục bản nháp đã lưu</button>{draftStorageMessage ? <p role="status">{draftStorageMessage}</p> : null}</div> : null}
+  return <div className="source-studio" data-step-direction={stepDirection} data-reading={visible && mode === "library" && Boolean(active && lesson)}>
+    <header className="studio-heading" hidden={mode === "library" && Boolean(active && lesson)}><div><span className="studio-eyebrow">{mode === "library" ? "HỌC TỪ NGUỒN · TRÊN THIẾT BỊ NÀY" : "TỪ NGUỒN ĐẾN HIỂU BIẾT"}</span><h1 ref={studioHeading} tabIndex={-1}>{mode === "library" ? "Thư viện của ông" : "Biến tài liệu thành lộ trình học"}</h1><p>{mode === "library" ? "Tiếp tục một khóa đã lưu hoặc khám phá các lộ trình AI & Data." : "Chọn nguồn, xem lại từng bài và lưu một lộ trình có dẫn chứng."}</p></div>{mode === "create" && onLibrary ? <button className="studio-extract" onClick={onLibrary}>Mở thư viện →</button> : null}</header>
+    {mode === "create" && draftStorageMessage ? <p className="studio-message" role="status">{draftStorageMessage}</p> : null}
     {message ? <p className="studio-message" role="status">{message}</p> : null}
     {missingTarget && mode === "library" ? <p className="studio-message" role="alert">{missingTarget}</p> : null}
     {mode === "library" && !active ? <CourseLibrary courses={courses} now={now} hydrated={hydrated} storageError={storageError} onOpen={chooseCourse} onRemove={removeCourse} onCreate={onCreate} onLesson={onLesson} onTrack={onTrack} /> : null}
     {mode === "create" && <nav className="studio-steps" aria-label="Quy trình tạo khóa học">{(["Thêm nguồn", "Chọn nội dung", "Duyệt bài"] as const).map((label, index) => <button key={label} aria-current={step === index + 1 ? "step" : undefined} disabled={busy || (index === 1 && !coverageDraft) || (index === 2 && !draft && reviewKind !== "ai")} onClick={() => goToStep((index + 1) as 1 | 2 | 3)}>{index + 1}. {label}</button>)}</nav>}
     {mode === "create" && step !== 1 ? <button className="studio-extract" onClick={() => goToStep(step === 3 ? 2 : 1)}>Quay lại {step === 3 ? "chọn nội dung" : "nguồn"}</button> : null}
-    {mode === "create" && step === 1 ? <div className="studio-resume"><button className="studio-extract" onClick={() => goToStep(2)}>Mở bản nháp độ phủ đã lưu</button><button className="studio-extract" onClick={() => { setReviewKind("ai"); goToStep(3); }}>Mở khóa AI đã lưu</button></div> : null}
+    {mode === "create" && step === 1 ? <details className="studio-resume"><summary>Bản nháp và khóa đã lưu</summary><div><button className="studio-extract" onClick={resumeDraft}>Khôi phục bản nháp đã lưu</button><button className="studio-extract" onClick={() => goToStep(2)}>Mở bản nháp độ phủ đã lưu</button><button className="studio-extract" onClick={() => { setReviewKind("ai"); goToStep(3); }}>Mở khóa AI đã lưu</button></div></details> : null}
     <div className="studio-layout create-layout" hidden={mode !== "create"} inert={mode !== "create"} style={mode !== "create" ? { display: "none" } : undefined}>
       <section hidden={step !== 1} style={step !== 1 ? { display: "none" } : undefined} className="studio-form" aria-labelledby="studio-form-heading">
         <div className="studio-section-head"><span>BƯỚC 1 · CHỌN NGUỒN</span><h2 id="studio-form-heading">Ông muốn học từ đâu?</h2></div>
@@ -318,7 +318,7 @@ export function SourceStudio({ mode = "create", navigationId, visible = true, li
     {mode === "library" && active && lesson ? <section className="studio-reader" aria-labelledby="studio-course-heading">
       <button className="back-link" onClick={() => { setActiveId(null); setChoice(null); setFeedback(null); }}>← Tất cả khóa học</button>
       <div className="studio-reader-head">
-        <div><span className="studio-eyebrow">{kindLabels[active.kind]}</span><h2 id="studio-course-heading">{active.title}</h2>
+        <div><span className="studio-eyebrow">{kindLabels[active.kind]}</span><h1 id="studio-course-heading">{active.title}</h1>
           <p>{completed}/{active.lessons.length} bài đã học · Nguồn: {active.sourceName}</p></div>
         {active.sourceUrl ? <a href={active.sourceUrl} target="_blank" rel="noopener noreferrer">Mở nguồn gốc ↗</a> : null}
       </div>

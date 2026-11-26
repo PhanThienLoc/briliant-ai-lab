@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./stitch-theme.css";
+import "./stitch-fidelity.css";
 
 export const metadata: Metadata = {
   title: "BriliantAI Lab",
