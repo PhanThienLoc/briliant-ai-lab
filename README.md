@@ -61,6 +61,12 @@ Source Studio is a local, deterministic draft generator. A URL is retained as pr
 
 See [Product requirements](docs/PRD.md), [Architecture](docs/ARCHITECTURE.md), [Curriculum](docs/CURRICULUM.md), [Design system](docs/DESIGN-SYSTEM.md), and [Roadmap](docs/ROADMAP.md).
 
+## Android AI Tutor (planned)
+
+The Android AI Tutor is in the planning stage. The current plan reuses the React learning experience inside a Tauri Android shell, with Rust limited to native capabilities and measured bottlenecks. AI inference is restricted to free providers, and every request requires an exact preview and separate user consent. No Android implementation or APK is claimed by this plan yet.
+
+See the [Android AI Tutor implementation plan](docs/android/2026-11-26-ai-tutor-implementation-plan.md) for milestones, security constraints, and acceptance gates.
+
 ## Runtime
 
 The web application runs on [vinext](https://github.com/cloudflare/vinext). Product state is deliberately browser-local.
