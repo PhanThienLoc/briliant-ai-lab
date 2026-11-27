@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "enabled_providers": ["openrouter"],
+  "model": "openrouter/particle-ai/particle-1:free",
+  "small_model": "openrouter/particle-ai/particle-1:free",
+  "permission": {
+    "bash": {
+      "*git*push*": "deny",
+      "*deploy*": "deny",
+      "*": "ask"
+    },
+    "read": {
+      ".env*": "deny",
+      "**/.env*": "deny"
+    }
+  }
+}
