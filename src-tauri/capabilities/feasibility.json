@@ -1,0 +1,7 @@
+{
+  "identifier": "feasibility",
+  "description": "Local feasibility window with no native permissions or remote origins.",
+  "local": true,
+  "windows": ["main"],
+  "permissions": []
+}

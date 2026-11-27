@@ -15,7 +15,10 @@
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
     "typecheck": "bash scripts/sites-env.sh -- tsc --noEmit --incremental false",
-    "types:worker": "bash scripts/sites-env.sh -- wrangler types types/worker-runtime.d.ts --config scripts/worker-types.json --include-env false"
+    "types:worker": "bash scripts/sites-env.sh -- wrangler types types/worker-runtime.d.ts --config scripts/worker-types.json --include-env false",
+    "mobile:build": "node scripts/build-mobile.mjs",
+    "android:dev": "node src-tauri/tools/run.mjs android dev",
+    "android:build": "node src-tauri/tools/run.mjs android build --apk"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

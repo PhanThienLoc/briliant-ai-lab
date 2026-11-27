@@ -1,0 +1,15 @@
+/target/
+/tools/node_modules
+**/build/
+**/.gradle/
+**/.kotlin/
+**/.cxx/
+**/.externalNativeBuild/
+**/local.properties
+**/key.properties
+**/keystore.properties
+**/signing.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
