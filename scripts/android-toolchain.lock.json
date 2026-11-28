@@ -1,0 +1,58 @@
+{
+  "temurin": {
+    "version": "21.0.13+9",
+    "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13_9.tar.gz",
+    "checksum_url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13_9.tar.gz.sha256.txt",
+    "sha256": "d7f5d5cf865a2902b70ff549b97586a7d3f234e016f041ab447ea740c7d66d1c"
+  },
+  "rustup": {
+    "version": "1.29.3",
+    "url": "https://static.rust-lang.org/rustup/archive/1.29.3/x86_64-unknown-linux-gnu/rustup-init",
+    "checksum_url": "https://static.rust-lang.org/rustup/archive/1.29.3/x86_64-unknown-linux-gnu/rustup-init.sha256",
+    "sha256": "b1c8cb14e30889e7e2999e6b69e62d9e9b9ffc0f4df8180564d306d9680e6c55"
+  },
+  "rust": {
+    "version": "1.90.0",
+    "target": "aarch64-linux-android",
+    "component": "rustfmt",
+    "profile": "minimal"
+  },
+  "gradle": {
+    "version": "9.6.1",
+    "distribution_url": "https://services.gradle.org/distributions/gradle-9.6.1-bin.zip",
+    "sha256_url": "https://services.gradle.org/distributions/gradle-9.6.1-bin.zip.sha256",
+    "sha256": "9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9e14"
+  },
+  "android_cmdline_tools": {
+    "package": "cmdline-tools;23.0",
+    "revision": "23.0",
+    "url": "https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip",
+    "sha1": "e025545c62a8e64c7559119566a569fb1dec5f60",
+    "size": 181052239
+  },
+  "android_platform": {
+    "package": "platforms;android-37.0",
+    "revision": "37.0",
+    "package_revision": "2",
+    "extension_level": "22",
+    "url": "https://dl.google.com/android/repository/platform-37.0_r02.zip",
+    "sha1": "ed8ebf7f8822a4de5686d427f237d2fa30ff7410",
+    "size": 67281901
+  },
+  "android_build_tools": {
+    "package": "build-tools;37.0.0",
+    "revision": "37.0.0",
+    "url": "https://dl.google.com/android/repository/build-tools_r37_linux.zip",
+    "sha1": "70954e99f4c3d9d46ee70fa32624672fe7cd6ebe",
+    "size": 66135704
+  },
+  "ndk": {
+    "package": "ndk;29.0.13846066",
+    "revision": "29.0.13846066",
+    "installed_revision": "29.0.13846066-beta3",
+    "url": "https://dl.google.com/android/repository/android-ndk-r29-beta3-linux.zip",
+    "sha1": "277ccc0f9c56b05dd88e0af39446cd9402b13b0c",
+    "size": 784944032
+  },
+  "android_repository_metadata": "https://dl.google.com/android/repository/repository2-3.xml"
+}
